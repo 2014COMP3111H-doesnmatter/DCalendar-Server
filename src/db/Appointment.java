@@ -47,6 +47,7 @@ public class Appointment extends Data
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(uid));
 		values.put("name", name);
+		values.put("startTime", String.valueOf(startTime));
 		
 		
 		return null;
