@@ -18,7 +18,7 @@ import doesnserver.Session;
 public class Data
 {
 
-	protected static Connection connect = null; // the sql connection
+	public static Connection connect = null; // the sql connection
 	
 	public static boolean sqlConnect() {
 		try
@@ -33,7 +33,6 @@ public class Data
 			return true;
 		} catch (Exception e)															
 		{
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -76,6 +75,12 @@ public class Data
 		statement.executeUpdate();
 		this.id = 0;
 	}
+	
+	/**
+	 * save the Data object into database
+	 * @param values col-value pairs
+	 * @throws Exception
+	 */
 	protected void save(Map<String,String> values) throws Exception {
 		if(isNew()) {
 			throw new Exception("attempt to save a dangling entry");
@@ -110,7 +115,12 @@ public class Data
 		
 	}
 	
-
+	/**
+	 * create a database entry. 
+	 * @param holder a Data object to hold the created data. the generated id will be put inside this object
+	 * @param values col-value pairs
+	 * @throws SQLException
+	 */
 	public static <D extends Data> void create(D holder, Map<String, String> values) throws SQLException {
 		int nColumn = values.size();
 		
@@ -123,8 +133,8 @@ public class Data
 	        Map.Entry pairs = it.next();
 	        aColumn[i] = "`" + (String)pairs.getKey() + "`";
 	        aValue[i] = (String)pairs.getValue();
+	        
 	        it.remove(); // avoids a ConcurrentModificationException
-	        i++;
 	    }
 	    
 	    // create a pattern of (col1, col2, col3)

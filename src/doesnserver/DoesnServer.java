@@ -47,6 +47,7 @@ public class DoesnServer extends NanoHTTPD
 				
 				// check if login is required
 				if(apiHandler.requireLogin && session.getActiveUserId()<=0) {
+					
 					return new Response(CommonResponses.showUnauthorized().toString());
 				}
 
@@ -86,16 +87,16 @@ public class DoesnServer extends NanoHTTPD
 	 * start the server
 	 */
 	public static void main(String[] args) {
-		System.out.println("Connecting to sql server...");
+		System.out.print("Connecting to sql server...");
 		if(!Data.sqlConnect()) {
-			System.out.println("Fail to connect to sql");
+			System.out.println("[failed]");
 			return;
 		}
-		System.out.println("Connect successful");
+		System.out.println("[ok]");
 		System.out.println("Port No: " + PORT);
+		Debug.debug();
 		ServerRunner.run(DoesnServer.class);
 
-		//Debug.debug();
 	}
 
 	public DoesnServer()
