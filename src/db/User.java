@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.damien.miller.Bcrypt.BCrypt;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -62,7 +63,7 @@ public class User extends Data
 	 * @return the hashed password
 	 */
 	public static String hashPassword(String passwordClear) {
-		return EncodeUtil.md5(passwordClear + "7f3OQ8xlnSrk34P");
+		return BCrypt.hashpw(passwordClear, BCrypt.gensalt());
 	}
 
 	/**
@@ -72,7 +73,7 @@ public class User extends Data
 	 * @return check result
 	 */
 	public boolean checkPassword(String passwordClear) {
-		return hashPassword(passwordClear).equals(this.passwordHashed);
+		return BCrypt.checkpw(passwordClear, this.passwordHashed);
 	}
 	
 	/**

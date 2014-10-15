@@ -5,5 +5,6 @@
 	<classpathentry kind="lib" path="lib/org.json-20120521.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.33-bin.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/jbcrypt-0.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
