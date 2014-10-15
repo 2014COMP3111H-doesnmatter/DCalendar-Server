@@ -45,16 +45,27 @@ public class DoesnServer extends NanoHTTPD
 			{
 				ApiHandler apiHandler = ((Class<ApiHandler>) cls).newInstance();
 				
+				Map<String, String> params = request.getParms();
+				// give some help text
+				if(params.containsKey("_help")) {
+					JSONObject rtn = new JSONObject();
+					rtn.put("rtnCode", "200 ok");
+					rtn.put("help", apiHandler.showHelp());
+					return new Response(rtn.toString());
+				}
+				
 				// check if login is required
 				if(apiHandler.requireLogin && session.getActiveUserId()<=0) {
 					
 					return new Response(CommonResponses.showUnauthorized().toString());
 				}
-
+				
 				// check params
-				Map<String, String> params = request.getParms();
+				
 				if(!apiHandler.checkParams(params)) {
-					return new Response(CommonResponses.showParamError().toString());
+					JSONObject rtn = CommonResponses.showParamError();
+					rtn.put("help", apiHandler.showHelp());
+					return new Response(rtn.toString());
 				}
 				
 				// pass the request to the handler

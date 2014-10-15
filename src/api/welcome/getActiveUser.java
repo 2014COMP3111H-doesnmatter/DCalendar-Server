@@ -11,6 +11,11 @@ import api.ApiHandler;
 public class getActiveUser extends ApiHandler
 {
 
+	public getActiveUser() {
+		this.info = "who am I?";
+		this.addRtnCode(201, "no active user");
+	}
+	
 	@Override
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {

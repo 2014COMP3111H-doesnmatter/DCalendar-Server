@@ -11,6 +11,12 @@ import api.ApiHandler;
 
 public class remove extends ApiHandler
 {
+	public remove() {
+		this.info = "remove a venue";
+		this.addParamConstraint("id", ParamCons.INTEGER);
+		this.addRtnCode(201, "venue not found");
+	}
+	
 	@Override
 	public boolean checkParams(Map<String, String> params) {
 		if(!StringUtils.isNumeric(params.get("id"))) return false;

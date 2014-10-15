@@ -15,12 +15,10 @@ public class remove extends ApiHandler
 	public remove()
 	{
 		this.requireLogin = true;
-	}
-
-	@Override
-	public boolean checkParams(Map<String, String> params) {
-		if(!StringUtils.isNumeric(params.get("id"))) return false;
-		return true;
+		this.info = "remove an appointment";
+		this.addParamConstraint("id", ParamCons.INTEGER);
+		this.addRtnCode(405, "appointment not found");
+		this.addRtnCode(406, "permission denied");
 	}
 
 	@Override
@@ -30,11 +28,11 @@ public class remove extends ApiHandler
 		long apptId = Long.parseLong(params.get("id"));
 		Appointment appt = Appointment.findById(apptId);
 		if(appt == null) {
-			rtn.put("rtnCode", "405 appointment not found");
+			rtn.put("rtnCode", this.getRtnCode(405));
 			return rtn;
 		}
 		if(appt.initiatorId != session.getActiveUserId()) {
-			rtn.put("rtnCode", "406 permission denied");
+			rtn.put("rtnCode", this.getRtnCode(406));
 			return rtn;
 		}
 		appt.delete();

@@ -16,15 +16,18 @@ public class edit extends ApiHandler
 
 	public edit() {
 		this.requireLogin = true;
-	}
-	
-	@Override
-	public boolean checkParams(Map<String, String> params) {
-		if(!StringUtils.isNumeric(params.get("id"))) return false;
-		if(params.containsKey("venueId") && !StringUtils.isNumeric(params.get("venueId"))) return false;
-		if(params.containsKey("startTime") && !StringUtils.isNumeric(params.get("startTime"))) return false;
-		if(params.containsKey("endTime") && !StringUtils.isNumeric(params.get("endTime"))) return false;
-		return true;
+		this.info = "edit an appointment";
+		this.addParamConstraint("id", ParamCons.INTEGER);
+		this.addParamConstraint("venueId", ParamCons.INTEGER, true);
+		this.addParamConstraint("startTime", ParamCons.INTEGER, true);
+		this.addParamConstraint("endTime", ParamCons.INTEGER, true);
+		this.addParamConstraint("name", true);
+		this.addParamConstraint("info", true);
+		this.addRtnCode(405, "appointment not found");
+		this.addRtnCode(406, "permission denied");
+		this.addRtnCode(407, "venue not found");
+		this.addRtnCode(408, "illegal time");
+		
 	}
 
 	@Override
@@ -91,14 +94,7 @@ public class edit extends ApiHandler
 		appt.save();
 		rtn.put("rtnCode", "200 ok");
 		{
-			JSONObject apptJo = new JSONObject();
-			apptJo.put("id", appt.getId());
-			apptJo.put("name", appt.name);
-			apptJo.put("venueId", appt.venueId);
-			apptJo.put("startTime", appt.startTime);
-			apptJo.put("endTime", appt.endTime);
-			apptJo.put("info", appt.info);
-			rtn.put("appointment", apptJo);
+			rtn.put("appointment", appt.toJson());
 		}
 		
 		return rtn;

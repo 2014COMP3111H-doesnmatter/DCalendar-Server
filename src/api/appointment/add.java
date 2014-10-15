@@ -14,18 +14,15 @@ public class add extends ApiHandler
 {
 
 	public add() {
-		requireLogin = true;
-	}
-	
-	@Override
-	public boolean checkParams(Map<String, String> params) {
-		if(!params.containsKey("name")) return false;
-		if(!StringUtils.isNumeric(params.get("venueId"))) return false;
-		if(!StringUtils.isNumeric(params.get("startTime"))) return false;
-		if(!StringUtils.isNumeric(params.get("endTime"))) return false;
-		if(!params.containsKey("info")) return false;
-		
-		return true;
+		this.requireLogin = true;
+		this.info = "add an appointmemt";
+		this.addParamConstraint("name");
+		this.addParamConstraint("venueId", ParamCons.INTEGER);
+		this.addParamConstraint("startTime", ParamCons.INTEGER);
+		this.addParamConstraint("endTime", ParamCons.INTEGER);
+		this.addParamConstraint("info");
+		this.addRtnCode(405, "venue not found");
+		this.addRtnCode(406, "illegal time");
 	}
 
 	@Override
@@ -43,14 +40,14 @@ public class add extends ApiHandler
 		
 		// check venue
 		if(Venue.findById(venueId) == null) {
-			rtn.put("rtnCode", "405 venue not found");
+			rtn.put("rtnCode", this.getRtnCode(405));
 			return rtn;
 		}
 		
 		// check legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
 		if(!Appointment.isLegal(initiatorId, startTime, endTime, explain)) {
-			rtn.put("rtnCode", "406 illegal time");
+			rtn.put("rtnCode", this.getRtnCode(406));
 			rtn.put("explain", explain);
 			return rtn;
 		}
@@ -59,16 +56,9 @@ public class add extends ApiHandler
 		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info);
 		
 		// construct return object
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		{
-			JSONObject apptJo = new JSONObject();
-			apptJo.put("id", appt.getId());
-			apptJo.put("name", appt.name);
-			apptJo.put("venueId", appt.venueId);
-			apptJo.put("startTime", appt.startTime);
-			apptJo.put("endTime", appt.endTime);
-			apptJo.put("info", appt.info);
-			rtn.put("appointment", apptJo);
+			rtn.put("appointment", appt.toJson());
 		}
 		
 		return rtn;

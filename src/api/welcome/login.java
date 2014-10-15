@@ -11,6 +11,14 @@ import api.ApiHandler;
 public class login extends ApiHandler
 {
 
+	public login() {
+		this.info = "performs a login action";
+		this.addParamConstraint("username");
+		this.addParamConstraint("password", "the clear password");
+		this.addRtnCode(201, "user does not exist");
+		this.addRtnCode(202, "password incorrect");
+	}
+	
 	@Override
 	public JSONObject main(Map<String, String> params, Session session) throws Exception
 	{

@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 
 
 public class Appointment extends Data
@@ -207,7 +209,7 @@ public class Appointment extends Data
 		// gather result
 		while(resultSet.next()) {
 			Appointment iAppt = createOneFromResultSet(resultSet);
-			
+			aAppt.add(iAppt);
 		}
 		
 		Appointment[] rtn = new Appointment[aAppt.size()];
@@ -232,6 +234,22 @@ public class Appointment extends Data
 		rtn.endTime = resultSet.getLong("endTime");
 		rtn.info = resultSet.getString("info");
 		return rtn;
+	}
+	
+	/**
+	 * get a JSON object for output
+	 * @return
+	 * @throws Exception
+	 */
+	public JSONObject toJson() throws Exception {
+		JSONObject apptJo = new JSONObject();
+		apptJo.put("id", this.getId());
+		apptJo.put("name", this.name);
+		apptJo.put("venueId", this.venueId);
+		apptJo.put("startTime", this.startTime);
+		apptJo.put("endTime", this.endTime);
+		apptJo.put("info", this.info);
+		return apptJo;
 	}
 	
 	

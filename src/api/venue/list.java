@@ -12,6 +12,9 @@ import api.ApiHandler;
 public class list extends ApiHandler
 {
 
+	public list() {
+		this.info = "list all venues";
+	}
 	@Override
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {

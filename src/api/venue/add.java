@@ -11,6 +11,12 @@ import api.ApiHandler;
 public class add extends ApiHandler
 {
 
+	public add() {
+		this.info = "add a new venue";
+		this.addParamConstraint("name");
+		this.addRtnCode(201, "already exists");
+	}
+	
 	@Override
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
@@ -18,11 +24,11 @@ public class add extends ApiHandler
 		String name = params.get("name");
 		Venue venue = Venue.findOne("name", name);
 		if(venue != null) {
-			rtn.put("rtnCode", "201 already exists");
+			rtn.put("rtnCode", this.getRtnCode(201));
 		}
 		else {
 			venue = Venue.create(name);
-			rtn.put("rtnCode", "200 ok");
+			rtn.put("rtnCode", this.getRtnCode(200));
 		}
 		
 		JSONObject venueJo = new JSONObject();
