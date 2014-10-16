@@ -21,7 +21,7 @@ public class list extends ApiHandler
 
 		JSONObject rtn = new JSONObject();
 		Venue[] aVenue = Venue.findAll();
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		{
 			JSONArray venueJa = new JSONArray();
 			for(int i=0; i<aVenue.length; i++) {

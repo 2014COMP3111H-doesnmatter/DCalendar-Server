@@ -24,12 +24,12 @@ public class getActiveUser extends ApiHandler
 		long uid = session.getActiveUserId();
 		// if no active user
 		if(uid==0) {
-			rtn.put("rtnCode", "201 no active user");
+			rtn.put("rtnCode", this.getRtnCode(201));
 			return rtn;
 		}
 		
 		User activeUser = User.findById(uid);
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		{
 			JSONObject userJo = new JSONObject();
 			userJo.put("username", activeUser.username);

@@ -39,11 +39,11 @@ public class edit extends ApiHandler
 		long apptId = Long.parseLong(params.get("id"));
 		Appointment appt = Appointment.findById(apptId);
 		if(appt == null) {
-			rtn.put("rtnCode", "405 appointment not found");
+			rtn.put("rtnCode", this.getRtnCode(405));
 			return rtn;
 		}
 		if(appt.initiatorId != session.getActiveUserId()) {
-			rtn.put("rtnCode", "406 permission denied");
+			rtn.put("rtnCode", this.getRtnCode(406));
 			return rtn;
 		}
 		
@@ -52,7 +52,7 @@ public class edit extends ApiHandler
 			long venueId = Long.parseLong(params.get("venueId"));
 			Venue venue = Venue.findById(venueId);
 			if(venue == null) {
-				rtn.put("rtnCode", "407 venue not found");
+				rtn.put("rtnCode", this.getRtnCode(407));
 				return rtn;
 			}
 			appt.venueId = venueId;
@@ -80,7 +80,7 @@ public class edit extends ApiHandler
 			if(startTime != appt.startTime || endTime != appt.endTime) {
 				Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
 				if(!Appointment.isLegal(session.getActiveUserId(), startTime, endTime, appt.getId(), explain)) {
-					rtn.put("rtnCode", "408 illegal time");
+					rtn.put("rtnCode", this.getRtnCode(408));
 					rtn.put("explain", explain);
 					return rtn;
 				}
@@ -92,7 +92,7 @@ public class edit extends ApiHandler
 		}
 		
 		appt.save();
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		{
 			rtn.put("appointment", appt.toJson());
 		}

@@ -28,16 +28,16 @@ public class login extends ApiHandler
 		
 		JSONObject rtn = new JSONObject();
 		if(u == null) {
-			rtn.put("rtnCode", "201 user does not exist");
+			rtn.put("rtnCode", this.getRtnCode(201));
 			return rtn;
 		}
 		if(!u.checkPassword(passwordClear)) {
-			rtn.put("rtnCode", "202 password incorrect");
+			rtn.put("rtnCode", this.getRtnCode(202));
 			return rtn;
 		}
 		
 		session.setActiveUserId(u.getId());
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		{
 			JSONObject userJo = new JSONObject();
 			userJo.put("username", u.username);

@@ -39,7 +39,7 @@ public class list extends ApiHandler
 		long endTime = Long.parseLong(params.get("endTime"));
 		Appointment[] aAppt = Appointment.findByTimeSpan(session.getActiveUserId(), startTime, endTime);
 		
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		JSONArray ja = new JSONArray();
 		for(int i=0; i<aAppt.length; i++) {
 			

@@ -36,7 +36,7 @@ public class remove extends ApiHandler
 			return rtn;
 		}
 		appt.delete();
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		return rtn;
 	}
 

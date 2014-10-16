@@ -32,11 +32,11 @@ public class remove extends ApiHandler
 		
 		Venue venue = Venue.findById(id);
 		if(venue == null) {
-			rtn.put("rtnCode", "201 venue does not exist");
+			rtn.put("rtnCode", this.getRtnCode(201));
 			return rtn;
 		}
 		venue.delete();
-		rtn.put("rtnCode", "200 ok");
+		rtn.put("rtnCode", this.getRtnCode(200));
 		return rtn;
 	}
 
