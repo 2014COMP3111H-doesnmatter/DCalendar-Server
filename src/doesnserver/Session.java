@@ -74,7 +74,9 @@ public class Session
 	 */
 	public static Session fromSessionId(String sessionId) {
 		if(sessions.containsKey(sessionId)) {
-			return sessions.get(sessionId);
+			Session rtn = sessions.get(sessionId);
+			rtn.recordActive();
+			return rtn;
 		}
 		else {
 			return newSession();
@@ -102,11 +104,14 @@ public class Session
 	
 	private Map<String,Object> datas; // data in this session
 	private String sessionId; // the session id
-	private long createTime; // time when created
+	private long activeSince; // time when created
 	private Session(String sessionId) {
-		this.createTime = new Date().getTime();
+		this.recordActive();
 		this.sessionId = sessionId;
 		this.datas = new HashMap<String,Object>();
+	}
+	private void recordActive() {
+		this.activeSince = new Date().getTime();
 	}
 	/**
 	 * check if this session has expired
@@ -114,7 +119,7 @@ public class Session
 	 * @return
 	 */
 	private boolean isExpired(long currTime) {
-		return createTime + DURATION < currTime;
+		return activeSince + DURATION < currTime;
 	}
 	/**
 	 * check if this session has expired
