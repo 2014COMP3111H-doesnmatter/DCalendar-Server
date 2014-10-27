@@ -27,7 +27,6 @@ public class getActiveUser extends ApiHandler
 			rtn.put("rtnCode", this.getRtnCode(201));
 			return rtn;
 		}
-		
 		User activeUser = User.findById(uid);
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
@@ -36,7 +35,6 @@ public class getActiveUser extends ApiHandler
 			userJo.put("id", activeUser.getId());
 			rtn.put("user", userJo);
 		}
-		
 		return rtn;
 	}
 

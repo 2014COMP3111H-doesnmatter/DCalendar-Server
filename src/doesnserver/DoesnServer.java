@@ -31,16 +31,15 @@ public class DoesnServer extends NanoHTTPD
 		if(uri.equals("/favicon.ico")) {
 			return CommonResponses.showFavicon();
 		}
-		
 		Session session = Session.fromNanoCookie(request.getCookies());
-		Response res = new Response(this.serveAsJson(request).toString());
+		Response res = new Response(this.serveAsJson(request, session).toString());
 		res.addHeader("Set-Cookie", session.getCookieForResponse());
 		res.addHeader("Access-Control-Allow-Origin", "*");
 		return res;
 
 	}
 
-	private JSONObject serveAsJson(IHTTPSession request) {
+	private JSONObject serveAsJson(IHTTPSession request, Session session) {
 		try
 		{
 			// get the handler class by URI
@@ -48,9 +47,6 @@ public class DoesnServer extends NanoHTTPD
 			String uri = request.getUri();
 			
 			Class<?> cls = Class.forName("api" + uri.replaceAll("/", "."));
-
-			// get session from cookie
-			Session session = Session.fromNanoCookie(request.getCookies());
 			
 			
 			try
