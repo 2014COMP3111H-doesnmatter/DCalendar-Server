@@ -127,6 +127,7 @@ public class Notification
 	 * if now is 17min, then in order to schedule at 30min, delay should be 13min
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	private static long getDelayFromNow() {
 		Date nowD = new Date();
 		Long now = nowD.getTime();

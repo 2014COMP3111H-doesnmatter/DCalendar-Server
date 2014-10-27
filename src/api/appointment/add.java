@@ -2,7 +2,6 @@ package api.appointment;
 
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import db.Appointment;

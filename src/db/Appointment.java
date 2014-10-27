@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import doesnmatter.timeMachine.TimeMachine;
+
 
 
 public class Appointment extends Data
@@ -65,7 +67,7 @@ public class Appointment extends Data
 		}
 		
 		// startTime should be greater than NOW
-		if(startTime < new Date().getTime()) {
+		if(startTime < TimeMachine.getNow().getTime()) {
 			if(explain != null) explain.explain = "cannot schedule an appointment in the past";
 			return false;
 		}
