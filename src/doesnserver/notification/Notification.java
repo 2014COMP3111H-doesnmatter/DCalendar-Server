@@ -15,8 +15,8 @@ import org.json.JSONArray;
 public class Notification
 {
 	private static Map<Long, Notification> monitors = new HashMap<Long, Notification>();
-	private static final long SCHEDULE_PERIOD = 5000;
-	private static final long SCHEDULE_DELAY = 1000;
+	private static final long SCHEDULE_PERIOD = 15*60*1000; // intervals to check notifications
+	private static final long SCHEDULE_DELAY = 1000; // add a small delay, because at exactly schedule beat, the event is "just about to happen",and is ambiguous
 	
 	/**
 	 * get the next notification
@@ -77,6 +77,7 @@ public class Notification
 			Entry<Long,Notification> pair = it.next();
 			Notification notification = pair.getValue();
 			notification.performSchedule();
+			it.remove();
 		}
 	}
 	

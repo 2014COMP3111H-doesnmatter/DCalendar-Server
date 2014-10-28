@@ -1,5 +1,6 @@
 package api.appointment;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -7,6 +8,7 @@ import org.json.JSONObject;
 import db.Appointment;
 import db.Venue;
 import doesnserver.Session;
+import doesnutil.DateUtil;
 import api.ApiHandler;
 
 public class add extends ApiHandler
@@ -20,8 +22,11 @@ public class add extends ApiHandler
 		this.addParamConstraint("startTime", ParamCons.INTEGER);
 		this.addParamConstraint("endTime", ParamCons.INTEGER);
 		this.addParamConstraint("info");
+		this.addParamConstraint("frequency", ParamCons.INTEGER);
+		this.addParamConstraint("lastDay", ParamCons.INTEGER);
 		this.addRtnCode(405, "venue not found");
 		this.addRtnCode(406, "illegal time");
+		this.addRtnCode(407, "illegal frequency");
 	}
 
 	@Override
@@ -36,12 +41,35 @@ public class add extends ApiHandler
 		long endTime = Long.parseLong(params.get("endTime"));
 		String info = params.get("info");
 		long initiatorId = session.getActiveUserId();
+		int frequency = Integer.parseInt(params.get("frequency"));
+		long lastDay = Long.parseLong(params.get("lastDay"));
 		
 		// check venue
 		if(Venue.findById(venueId) == null) {
 			rtn.put("rtnCode", this.getRtnCode(405));
 			return rtn;
 		}
+		
+		// check frequency
+		switch(frequency) {
+		case Appointment.Frequency.DAILY:
+		case Appointment.Frequency.MONTHLY:
+		case Appointment.Frequency.ONCE:
+		case Appointment.Frequency.WEEKLY:
+			break;
+		default:
+			rtn.put("rtnCode", this.getRtnCode(407));
+			return rtn;
+		}
+		
+		// normalize last day
+		if(frequency == Appointment.Frequency.ONCE) {
+			lastDay = DateUtil.getStartOfDay(endTime);
+		}
+		else if(lastDay != 0) {
+			lastDay = DateUtil.getStartOfDay(lastDay);
+		}
+		
 		
 		// check legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
@@ -52,7 +80,7 @@ public class add extends ApiHandler
 		}
 		
 		// create appointment
-		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info);
+		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info, frequency, lastDay);
 		
 		// construct return object
 		rtn.put("rtnCode", this.getRtnCode(200));
