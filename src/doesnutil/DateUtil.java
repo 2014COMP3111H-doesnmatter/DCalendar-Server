@@ -17,5 +17,12 @@ public class DateUtil
 		Date dayD = new Date(d.getYear(), d.getMonth(), 1);
 		return dayD.getTime();
 	}
+	public static long nextMonth(long month) {
+		return getStartOfMonth(month + 32*DAY_LENGTH);
+	}
+	public static long transposeToDay(long t, long d) {
+		long d1 = getStartOfDay(t);
+		return t + d - d1;
+	}
 
 }

@@ -1,5 +1,6 @@
 package api.appointment;
 
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -29,7 +30,7 @@ public class listByDay extends ApiHandler
 		day = DateUtil.getStartOfDay(day);
 		
 		rtn.put("rtnCode", this.getRtnCode(200));
-		Appointment[] aAppt = Appointment.findByDay(session.getActiveUserId(), day);
+		List<Appointment> aAppt = Appointment.findByDay(session.getActiveUserId(), day);
 		JSONArray apptJa = new JSONArray();
 		for(Appointment iAppt:aAppt) {
 			apptJa.put(iAppt.toJson());

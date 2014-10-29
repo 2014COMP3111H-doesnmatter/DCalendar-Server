@@ -1,5 +1,6 @@
 package api.appointment;
 
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -30,7 +31,7 @@ public class listByMonth extends ApiHandler
 		
 		rtn.put("rtnCode", this.getRtnCode(200));
 		JSONArray apptJa = new JSONArray();
-		Appointment[] aAppt = Appointment.findByMonth(session.getActiveUserId(), month);
+		List<Appointment> aAppt = Appointment.findByMonth(session.getActiveUserId(), month);
 		
 		for(Appointment iAppt:aAppt) {
 			apptJa.put(iAppt.toJson());

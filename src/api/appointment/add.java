@@ -66,14 +66,17 @@ public class add extends ApiHandler
 		if(frequency == Appointment.Frequency.ONCE) {
 			lastDay = DateUtil.getStartOfDay(endTime);
 		}
-		else if(lastDay != 0) {
+		else if(lastDay == 0) {
+			lastDay = Long.MAX_VALUE;
+		}
+		else {
 			lastDay = DateUtil.getStartOfDay(lastDay);
 		}
 		
 		
 		// check legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
-		if(!Appointment.isLegal(initiatorId, startTime, endTime, explain)) {
+		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, 0L, explain)) {
 			rtn.put("rtnCode", this.getRtnCode(406));
 			rtn.put("explain", explain);
 			return rtn;

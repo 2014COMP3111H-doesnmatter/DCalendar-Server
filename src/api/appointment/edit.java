@@ -9,6 +9,7 @@ import db.Appointment;
 import db.Appointment.IsLegalExplain;
 import db.Venue;
 import doesnserver.Session;
+import doesnutil.DateUtil;
 import api.ApiHandler;
 
 public class edit extends ApiHandler
@@ -23,10 +24,13 @@ public class edit extends ApiHandler
 		this.addParamConstraint("endTime", ParamCons.INTEGER, true);
 		this.addParamConstraint("name", true);
 		this.addParamConstraint("info", true);
+		this.addParamConstraint("frequency", ParamCons.INTEGER, true);
+		this.addParamConstraint("lastDay", ParamCons.INTEGER, true);
 		this.addRtnCode(405, "appointment not found");
 		this.addRtnCode(406, "permission denied");
 		this.addRtnCode(407, "venue not found");
 		this.addRtnCode(408, "illegal time");
+		this.addRtnCode(409, "illegal frequency");
 		
 	}
 
@@ -68,26 +72,57 @@ public class edit extends ApiHandler
 			appt.info = params.get("info");
 		}
 		
-		// time
-		if(params.containsKey("startTime") || params.containsKey("endTime")) {
-			long startTime = params.containsKey("startTime") ? 
-					Long.parseLong(params.get("startTime")) :
-					appt.startTime;
-			long endTime = params.containsKey("endTime") ? 
-					Long.parseLong(params.get("endTime")) :
-					appt.endTime;
-			
-			if(startTime != appt.startTime || endTime != appt.endTime) {
-				Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
-				if(!Appointment.isLegal(session.getActiveUserId(), startTime, endTime, appt.getId(), explain)) {
-					rtn.put("rtnCode", this.getRtnCode(408));
-					rtn.put("explain", explain);
-					return rtn;
-				}
+		
 				
-				appt.startTime = startTime;
-				appt.endTime = endTime;
-			}	
+		// time
+		long startTime = params.containsKey("startTime") ? 
+				Long.parseLong(params.get("startTime")) :
+				appt.startTime;
+		long endTime = params.containsKey("endTime") ? 
+				Long.parseLong(params.get("endTime")) :
+				appt.endTime;
+		int frequency = params.containsKey("frequency") ?
+				Integer.parseInt(params.get("frequency")) :
+				appt.frequency;
+		long lastDay = params.containsKey("lastDay") ?
+				Long.parseLong(params.get("lastDay")) :
+				appt.lastDay;
+		
+		// check frequency
+		switch(frequency) {
+		case Appointment.Frequency.DAILY:
+		case Appointment.Frequency.MONTHLY:
+		case Appointment.Frequency.ONCE:
+		case Appointment.Frequency.WEEKLY:
+			break;
+		default:
+			rtn.put("rtnCode", this.getRtnCode(409));
+			return rtn;
+		}
+				
+		// normalize last day
+		if(frequency == Appointment.Frequency.ONCE) {
+			lastDay = DateUtil.getStartOfDay(endTime);
+		}
+		else if(lastDay == 0) {
+			lastDay = Long.MAX_VALUE;
+		}
+		else {
+			lastDay = DateUtil.getStartOfDay(lastDay);
+		}
+				
+		if(startTime != appt.startTime || endTime != appt.endTime
+				|| frequency != appt.frequency || lastDay != appt.lastDay) {
+			
+			Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
+			if(!Appointment.isLegal(session.getActiveUserId(), startTime, endTime, frequency, lastDay, appt.getId(), explain)) {
+				rtn.put("rtnCode", this.getRtnCode(408));
+				rtn.put("explain", explain);
+				return rtn;
+			}
+			
+			appt.startTime = startTime;
+			appt.endTime = endTime;
 			
 		}
 		
