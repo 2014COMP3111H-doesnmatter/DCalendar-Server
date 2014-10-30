@@ -2,6 +2,7 @@ package doesnmatter.timeMachine;
 
 import java.util.Date;
 
+//set server time and return time
 public class TimeMachine
 {
 
