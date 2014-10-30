@@ -200,6 +200,9 @@ public class Appointment extends Data
 		values.put("startTime", String.valueOf(startTime));
 		values.put("endTime", String.valueOf(endTime));
 		values.put("info", info);
+		values.put("frequency", String.valueOf(this.frequency));
+		values.put("lastDay", String.valueOf(this.lastDay));
+		values.put("freqHelper", String.valueOf(this.freqHelper));
 		super.save(values);
 	}
 
@@ -441,7 +444,7 @@ public class Appointment extends Data
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONObject toJson() throws Exception {
+	public JSONObject toJson(long uid) throws Exception {
 		JSONObject apptJo = new JSONObject();
 		apptJo.put("id", this.getId());
 		apptJo.put("name", this.name);
@@ -451,6 +454,7 @@ public class Appointment extends Data
 		apptJo.put("info", this.info);
 		apptJo.put("frequency", this.frequency);
 		apptJo.put("lastDay", this.lastDay);
+		if(uid>=0)apptJo.put("reminderAhead", this.getReminderAhead(uid));
 		return apptJo;
 	}
 
@@ -504,5 +508,17 @@ public class Appointment extends Data
 		long endTime2 = endTime;
 		
 		return startTime1 < endTime2 && startTime2 < endTime1;
+	}
+	
+	public long getReminderAhead(long uid) throws SQLException {
+		Reminder reminder = Reminder.findByApptAndUser(this.getId(), uid);
+		return reminder==null?0:reminder.reminderAhead;
+	}
+	public void setReminderAhead(long uid, long reminderAhead) throws SQLException {
+		Reminder.create(this.getId(), uid, reminderAhead);
+	}
+	public void delete() throws SQLException {
+		Reminder.deleteByAppt(this.getId());
+		super.delete();
 	}
 }
