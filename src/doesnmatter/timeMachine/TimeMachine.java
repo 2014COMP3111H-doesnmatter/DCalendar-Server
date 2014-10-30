@@ -6,10 +6,11 @@ import java.util.Date;
 public class TimeMachine
 {
 
+	private static long serverTime;
 	public static Date getNow() {
 		return new Date();
 	}
 	public static void setNow(long timeStamp) {
-		
+		serverTime = timeStamp;
 	}
 }
