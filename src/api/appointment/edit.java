@@ -26,6 +26,7 @@ public class edit extends ApiHandler
 		this.addParamConstraint("info", true);
 		this.addParamConstraint("frequency", ParamCons.INTEGER, true);
 		this.addParamConstraint("lastDay", ParamCons.INTEGER, true);
+		this.addParamConstraint("reminderAhead", ParamCons.INTEGER, true);
 		this.addRtnCode(405, "appointment not found");
 		this.addRtnCode(406, "permission denied");
 		this.addRtnCode(407, "venue not found");
@@ -38,6 +39,7 @@ public class edit extends ApiHandler
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
 		JSONObject rtn = new JSONObject();
+		long activeUserId = session.getActiveUserId();
 		
 		// get target appt
 		long apptId = Long.parseLong(params.get("id"));
@@ -46,7 +48,7 @@ public class edit extends ApiHandler
 			rtn.put("rtnCode", this.getRtnCode(405));
 			return rtn;
 		}
-		if(appt.initiatorId != session.getActiveUserId()) {
+		if(appt.initiatorId != activeUserId) {
 			rtn.put("rtnCode", this.getRtnCode(406));
 			return rtn;
 		}
@@ -127,9 +129,16 @@ public class edit extends ApiHandler
 		}
 		
 		appt.save();
+		
+		// reminder
+		if(params.containsKey("reminderAhead")) {
+			long reminderAhead = Long.parseLong(params.get("reminderAhead"));
+			appt.setReminderAhead(activeUserId, reminderAhead);
+		}
+		
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
-			rtn.put("appointment", appt.toJson());
+			rtn.put("appointment", appt.toJson(activeUserId));
 		}
 		
 		return rtn;

@@ -34,7 +34,7 @@ public class listByMonth extends ApiHandler
 		List<Appointment> aAppt = Appointment.findByMonth(session.getActiveUserId(), month);
 		
 		for(Appointment iAppt:aAppt) {
-			apptJa.put(iAppt.toJson());
+			apptJa.put(iAppt.toJson(session.getActiveUserId()));
 		}
 		rtn.put("aAppointment", apptJa);
 		

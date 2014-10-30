@@ -24,6 +24,7 @@ public class add extends ApiHandler
 		this.addParamConstraint("info");
 		this.addParamConstraint("frequency", ParamCons.INTEGER);
 		this.addParamConstraint("lastDay", ParamCons.INTEGER);
+		this.addParamConstraint("reminderAhead", ParamCons.INTEGER, true);
 		this.addRtnCode(405, "venue not found");
 		this.addRtnCode(406, "illegal time");
 		this.addRtnCode(407, "illegal frequency");
@@ -35,6 +36,7 @@ public class add extends ApiHandler
 		
 		JSONObject rtn = new JSONObject();
 		
+		long activeUserId = session.getActiveUserId();
 		String name = params.get("name");
 		long venueId = Long.parseLong(params.get("venueId"));
 		long startTime = Long.parseLong(params.get("startTime"));
@@ -43,6 +45,7 @@ public class add extends ApiHandler
 		long initiatorId = session.getActiveUserId();
 		int frequency = Integer.parseInt(params.get("frequency"));
 		long lastDay = Long.parseLong(params.get("lastDay"));
+		
 		
 		// check venue
 		if(Venue.findById(venueId) == null) {
@@ -85,10 +88,16 @@ public class add extends ApiHandler
 		// create appointment
 		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info, frequency, lastDay);
 		
+		// set reminder
+		if(params.containsKey("reminderAhead")) {
+			long reminderAhead = Long.parseLong(params.get("reminderAhead"));
+			appt.setReminderAhead(activeUserId, reminderAhead);
+		}
+		
 		// construct return object
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
-			rtn.put("appointment", appt.toJson());
+			rtn.put("appointment", appt.toJson(activeUserId));
 		}
 		
 		return rtn;

@@ -33,7 +33,7 @@ public class listByDay extends ApiHandler
 		List<Appointment> aAppt = Appointment.findByDay(session.getActiveUserId(), day);
 		JSONArray apptJa = new JSONArray();
 		for(Appointment iAppt:aAppt) {
-			apptJa.put(iAppt.toJson());
+			apptJa.put(iAppt.toJson(session.getActiveUserId()));
 		}
 		rtn.put("aAppointment", apptJa);
 		
