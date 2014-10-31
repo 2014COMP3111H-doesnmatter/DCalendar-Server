@@ -103,15 +103,7 @@ public class edit extends ApiHandler
 		}
 				
 		// normalize last day
-		if(frequency == Appointment.Frequency.ONCE) {
-			lastDay = DateUtil.getStartOfDay(endTime);
-		}
-		else if(lastDay == 0) {
-			lastDay = Long.MAX_VALUE;
-		}
-		else {
-			lastDay = DateUtil.getStartOfDay(lastDay);
-		}
+		lastDay = DateUtil.earliestLastDay(endTime, frequency, lastDay);
 				
 		if(startTime != appt.startTime || endTime != appt.endTime
 				|| frequency != appt.frequency || lastDay != appt.lastDay) {

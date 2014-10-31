@@ -192,20 +192,6 @@ public class Appointment extends Data
 		return rtn;
 	}
 
-	public void save() throws Exception {
-		Map<String, String> values = new HashMap<String, String>();
-		values.put("initiatorId", String.valueOf(initiatorId));
-		values.put("name", name);
-		values.put("venueId", String.valueOf(venueId));
-		values.put("startTime", String.valueOf(startTime));
-		values.put("endTime", String.valueOf(endTime));
-		values.put("info", info);
-		values.put("frequency", String.valueOf(this.frequency));
-		values.put("lastDay", String.valueOf(this.lastDay));
-		values.put("freqHelper", String.valueOf(this.freqHelper));
-		super.save(values);
-	}
-
 	public static Appointment findById(long id) throws SQLException {
 		ResultSet resultSet =
 				Data._find(Appointment.class.getSimpleName(), "id", String
@@ -438,6 +424,37 @@ public class Appointment extends Data
 		}
 		return aAppt;
 	}
+	private static int computeFreqHelper(int freq, long startTime) {
+		switch (freq)
+		{
+		case Frequency.ONCE:
+			return 0;
+		case Frequency.DAILY:
+			return 0;
+		case Frequency.WEEKLY:
+			Date startD = new Date(startTime);
+			return startD.getDay();
+		case Frequency.MONTHLY:
+			startD = new Date(startTime);
+			return startD.getDate();
+		}
+		return 0;
+	}
+
+	public void save() throws Exception {
+		Map<String, String> values = new HashMap<String, String>();
+		values.put("initiatorId", String.valueOf(initiatorId));
+		values.put("name", name);
+		values.put("venueId", String.valueOf(venueId));
+		values.put("startTime", String.valueOf(startTime));
+		values.put("endTime", String.valueOf(endTime));
+		values.put("info", info);
+		values.put("frequency", String.valueOf(this.frequency));
+		values.put("lastDay", String.valueOf(this.lastDay));
+		values.put("freqHelper", String.valueOf(this.freqHelper));
+		super.save(values);
+	}
+
 	/**
 	 * get a JSON object for output
 	 * 
@@ -458,23 +475,6 @@ public class Appointment extends Data
 		return apptJo;
 	}
 
-	private static int computeFreqHelper(int freq, long startTime) {
-		switch (freq)
-		{
-		case Frequency.ONCE:
-			return 0;
-		case Frequency.DAILY:
-			return 0;
-		case Frequency.WEEKLY:
-			Date startD = new Date(startTime);
-			return startD.getDay();
-		case Frequency.MONTHLY:
-			startD = new Date(startTime);
-			return startD.getDate();
-		}
-		return 0;
-	}
-	
 	private boolean isConflictWith(long startTime, long endTime, int frequency, long lastDay) {
 		
 		// day span
