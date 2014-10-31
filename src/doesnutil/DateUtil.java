@@ -22,11 +22,11 @@ public class DateUtil
 	}
 
 	public static long nextMonth(long month) {
-		return getStartOfMonth(month + 32 * DAY_LENGTH);
+		return month + countDayInMonth(month) * DAY_LENGTH;
 	}
 
 	public static long prevMonth(long month) {
-		return getStartOfMonth(month - 32 * DAY_LENGTH);
+		return getStartOfMonth(month - DAY_LENGTH);
 	}
 
 	public static boolean isLeapYear(int year) {
