@@ -117,6 +117,8 @@ public class edit extends ApiHandler
 			
 			appt.startTime = startTime;
 			appt.endTime = endTime;
+			appt.frequency = frequency;
+			appt.lastDay = lastDay;
 			
 		}
 		
