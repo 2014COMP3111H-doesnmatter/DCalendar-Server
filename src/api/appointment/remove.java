@@ -20,7 +20,7 @@ public class remove extends ApiHandler
 		this.addParamConstraint("id", ParamCons.INTEGER);
 		this.addRtnCode(405, "appointment not found");
 		this.addRtnCode(406, "permission denied");
-		this.addRtnCode(407, "cannot delete appointment in the past");
+		this.addRtnCode(407, "illegal time");
 	}
 
 	@Override
@@ -34,14 +34,15 @@ public class remove extends ApiHandler
 			return rtn;
 		}
 		if(appt.initiatorId != session.getActiveUserId()) {
-			rtn.put("rtnCode", this.getRtnCode(407));
+			rtn.put("rtnCode", this.getRtnCode(406));
 			return rtn;
 		}
 		
 		// cannot delete event in the past
 		long startTime = appt.startTime;
 		if(startTime < TimeMachine.getNow().getTime()) {
-			rtn.put("rtnCode", this.getRtnCode(408));
+			rtn.put("rtnCode", this.getRtnCode(407));
+			return rtn;
 		}
 		
 		appt.delete();

@@ -95,6 +95,7 @@ public class edit extends ApiHandler
 		if(startTime < TimeMachine.getNow().getTime()) {
 			rtn.put("rtnCode", this.getRtnCode(408));
 			rtn.put("explain", "cannot edit event in the past");
+			return rtn;
 		}
 		
 		// check frequency
