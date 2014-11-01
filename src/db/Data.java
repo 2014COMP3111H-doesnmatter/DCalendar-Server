@@ -76,6 +76,11 @@ public class Data
 		this.id = 0;
 	}
 	
+	public static void truncate(String tableName) throws SQLException {
+		PreparedStatement statement = connect.prepareStatement(" truncate `" + tableName + "` " );
+		statement.executeUpdate();
+	}
+	
 	/**
 	 * save the Data object into database
 	 * @param values col-value pairs
