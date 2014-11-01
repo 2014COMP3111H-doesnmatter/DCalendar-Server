@@ -515,7 +515,16 @@ public class Appointment extends Data
 		return reminder==null?0:reminder.reminderAhead;
 	}
 	public void setReminderAhead(long uid, long reminderAhead) throws SQLException {
-		Reminder.create(this.getId(), uid, reminderAhead);
+		Reminder reminder = Reminder.findByApptAndUser(this.getId(), uid);
+		if(reminder == null)
+		{
+			Reminder.create(this.getId(), uid, reminderAhead);
+		}
+		else {
+			reminder.reminderAhead = reminderAhead;
+			reminder.save();
+		}
+		
 	}
 	public void delete() throws SQLException {
 		Reminder.deleteByAppt(this.getId());

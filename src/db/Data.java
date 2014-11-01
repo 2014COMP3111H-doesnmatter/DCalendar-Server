@@ -79,11 +79,10 @@ public class Data
 	/**
 	 * save the Data object into database
 	 * @param values col-value pairs
-	 * @throws Exception
 	 */
-	protected void save(Map<String,String> values) throws Exception {
+	protected void save(Map<String,String> values) throws SQLException {
 		if(isNew()) {
-			throw new Exception("attempt to save a dangling entry");
+			throw new SQLException("attemp to save a dangling record");
 		}
 		
 		int nColumn = values.size();

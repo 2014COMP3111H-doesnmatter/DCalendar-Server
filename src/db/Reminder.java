@@ -27,7 +27,7 @@ public class Reminder extends Data
 		rtn.reminderAhead = resultSet.getLong("reminderAhead");
 		return rtn;
 	}
-	public void save() throws Exception {
+	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("reminderAhead", String.valueOf(this.reminderAhead));
 		super.save(values);
