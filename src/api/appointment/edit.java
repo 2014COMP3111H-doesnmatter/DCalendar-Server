@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import db.Appointment;
 import db.Appointment.IsLegalExplain;
 import db.Venue;
+import doesnmatter.timeMachine.TimeMachine;
 import doesnserver.Session;
 import doesnutil.DateUtil;
 import api.ApiHandler;
@@ -89,6 +90,12 @@ public class edit extends ApiHandler
 		long lastDay = params.containsKey("lastDay") ?
 				Long.parseLong(params.get("lastDay")) :
 				appt.lastDay;
+				
+		// cannot edit event in the past
+		if(startTime < TimeMachine.getNow().getTime()) {
+			rtn.put("rtnCode", this.getRtnCode(408));
+			rtn.put("explain", "cannot edit event in the past");
+		}
 		
 		// check frequency
 		switch(frequency) {
