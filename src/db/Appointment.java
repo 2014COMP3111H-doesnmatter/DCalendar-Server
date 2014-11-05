@@ -451,6 +451,7 @@ public class Appointment extends Data
 		values.put("info", info);
 		values.put("frequency", String.valueOf(this.frequency));
 		values.put("lastDay", String.valueOf(this.lastDay));
+		this.freqHelper = Appointment.computeFreqHelper(this.frequency, this.startTime);
 		values.put("freqHelper", String.valueOf(this.freqHelper));
 		super.save(values);
 	}

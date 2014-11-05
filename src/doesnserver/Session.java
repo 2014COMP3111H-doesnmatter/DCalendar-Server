@@ -24,25 +24,17 @@ public class Session
 	
 
 	/**
-	 * clean up a session by id
-	 * @param sessionId
-	 */
-	private static void expireSession(String sessionId) {
-		sessions.remove(sessionId);
-	}
-	/**
 	 * traverse all sessions and clean up whatever expired
 	 */
-	private static void cleanUpAllExpiredSession() {
+	private synchronized static void cleanUpAllExpiredSession() {
 		Iterator it = sessions.entrySet().iterator();
 		long currTime = new Date().getTime();
 		while(it.hasNext()) {
 			Map.Entry pair = (Map.Entry)it.next();
 			Session iSession = (Session)pair.getValue();
 			if(iSession.isExpired(currTime)) {
-				expireSession((String)pair.getKey());
+				it.remove();
 			}
-			it.remove(); // avoids a ConcurrentModificationException
 			
 		}
 	}
