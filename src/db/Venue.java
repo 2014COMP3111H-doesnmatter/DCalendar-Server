@@ -6,9 +6,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Venue extends Data
 {
 	public String name;
+	public int capacity;
 	protected Venue() {
 		super(Venue.class.getSimpleName());
 	}
@@ -43,6 +47,20 @@ public class Venue extends Data
 		values.put("name", name);
 		Data.create(rtn, values);
 		rtn.name = name;
+		return rtn;
+	}
+	public JSONObject toJson() {
+		JSONObject rtn = new JSONObject();
+		try
+		{
+			rtn.put("name", this.name);
+			rtn.put("capacity", this.capacity);
+		} catch (JSONException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return rtn;
 	}
 

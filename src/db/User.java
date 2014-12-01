@@ -139,4 +139,20 @@ public class User extends Data
 			return super.toString();
 		}
 	}
+	
+	public JSONObject toJson() {
+		JSONObject jo = new JSONObject();
+		
+		try
+		{
+			
+			jo.put("id", getId());
+			jo.put("username", username);
+			return jo;
+		} catch (JSONException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

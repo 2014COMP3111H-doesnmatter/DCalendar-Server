@@ -11,12 +11,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Notification
 {
-	private static Map<Long, Notification> monitors = new HashMap<Long, Notification>();
-	private static final long SCHEDULE_PERIOD = 15*60*1000; // intervals to check notifications
-	private static final long SCHEDULE_DELAY = 1000; // add a small delay, because at exactly schedule beat, the event is "just about to happen",and is ambiguous
+	private static Map<Long, UserNotificationBuffer> monitors = new HashMap<Long, UserNotificationBuffer>();
+	static final long SCHEDULE_PERIOD = 15*60*1000L; // intervals to check notifications
+	static final long SCHEDULE_DELAY = 1000L; // add a small delay, because at exactly schedule beat, the event is "just about to happen",and is ambiguous
 	
 	/**
 	 * get the next notification
@@ -24,7 +26,7 @@ public class Notification
 	 * @return
 	 */
 	public static JSONArray nextSync(long uid) {
-		Notification monitor = getMonitorFor(uid);
+		UserNotificationBuffer monitor = getMonitorFor(uid);
 		synchronized(monitor) {
 			if(monitor.isEmpty()) {
 				try
@@ -43,13 +45,13 @@ public class Notification
 	 * @param uid
 	 * @return
 	 */
-	private static Notification getMonitorFor(long uid) {
-		Notification rtn = null;
+	private static UserNotificationBuffer getMonitorFor(long uid) {
+		UserNotificationBuffer rtn = null;
 		if(monitors.containsKey(uid)) {
 			return monitors.get(uid);
 		}
 		else {
-			rtn = new Notification(uid);
+			rtn = new UserNotificationBuffer(uid);
 			monitors.put(uid, rtn);
 			return rtn;
 		}
@@ -68,59 +70,27 @@ public class Notification
 		}, getDelayFromNow(), Notification.SCHEDULE_PERIOD);
 		
 	}
+	
+	/**
+	 * add a notification for a user
+	 * @param uid
+	 * @param notification
+	 */
+	public static void add(long uid, Notification notification) {
+		UserNotificationBuffer buffer = getMonitorFor(uid);
+		buffer.addNotification(notification);
+	}
+	
 	/**
 	 * time to find some notifications
 	 */
 	private static void loopCallBack() {
-		Iterator<Entry<Long,Notification>> it = monitors.entrySet().iterator();
+		Iterator<Entry<Long,UserNotificationBuffer>> it = monitors.entrySet().iterator();
 		while(it.hasNext()) {
-			Entry<Long,Notification> pair = it.next();
-			Notification notification = pair.getValue();
+			Entry<Long,UserNotificationBuffer> pair = it.next();
+			UserNotificationBuffer notification = pair.getValue();
 			notification.performSchedule();
-			it.remove();
 		}
-	}
-	
-	
-	private JSONArray lastPackedJson = null;
-	private long uid;
-	private List<String> units = new ArrayList<String>(); //TODO: notification buffer goes here
-	public Notification(long uid)
-	{
-		this.uid = uid;
-		
-	}
-	private boolean isEmpty() {
-		return this.units.size() <= 0;
-	}
-	/**
-	 * dump the buffer to a JSONArray for output
-	 * buffer will be cleared
-	 * if buffer is empty, it will return last result
-	 * @return
-	 */
-	private JSONArray packJson() {
-		if(this.isEmpty()) return lastPackedJson;
-		JSONArray rtn = new JSONArray();
-		for(int i=0; i<units.size(); i++) {
-			rtn.put(units.get(i));
-		}
-		units.clear();
-		this.lastPackedJson = rtn;
-		return rtn;
-	}
-	/**
-	 * time to see whether i have a notification!
-	 */
-	private void performSchedule() {
-		synchronized(this) {
-			// TODO: scan for notification and put it into buffer
-			this.units.add("somethin' to know!");
-			
-			this.notifyAll();
-		}
-		
-		
 	}
 	/**
 	 * get the amount of time to delay from now in order to meet the schedule beat
@@ -136,4 +106,22 @@ public class Notification
 		long diff = now - start;
 		return Notification.SCHEDULE_PERIOD - (diff % Notification.SCHEDULE_PERIOD);
 	}
+	
+	
+	
+	
+	public JSONObject toJson() {
+		JSONObject rtn = new JSONObject();
+		try
+		{
+			rtn.put("notificationType", this.getClass().getSimpleName());
+		} catch (JSONException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return rtn;
+	}
+	
+	
 }
