@@ -3,6 +3,7 @@ package db;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +31,7 @@ public class Data
 			connect =
 					DriverManager
 							.getConnection("jdbc:mysql://johnserver0.youmu.moe/doesnmatter?user=doesnmatter&password=122333");
+			escapeHelper = connect.prepareStatement("?");
 			return true;
 		} catch (Exception e)															
 		{
@@ -170,6 +172,78 @@ public class Data
         else {
             throw new SQLException("Creating user failed, no ID obtained.");
         }
+	}
+	
+	public static <E> void _findArray(String tableName, long id, Collection<E> rtn) throws SQLException {
+		ResultSet resultSet =
+				Data._find(tableName, "key", String
+						.valueOf(id));
+		for (int i = 0; resultSet.next(); i++)
+		{
+			rtn.add((E)resultSet.getObject(2));
+		}
+	}
+	protected <E> void findArray(String fieldName, Collection<E> rtn) throws SQLException {
+		Data._findArray(this.tableName + "_" + fieldName, this.getId(), rtn);
+	}
+	
+	public static <E> void _saveArray(String tableName, long id, Collection<E> aValue) throws SQLException {
+		List<E> ori = new ArrayList<E>();
+		_findArray(tableName, id, ori);
+		List<E> toRemove = new ArrayList<E>(ori);
+		List<E> toAdd = new ArrayList<E>(aValue);
+		toRemove.removeAll(aValue);
+		toAdd.removeAll(ori);
+		
+		// handle toRemove
+		if(toRemove.size()>0) {
+			StringBuilder statement = new StringBuilder("delete from `");
+			statement.append(tableName).append("` where `key` = ")
+			.append(String.valueOf(id)).append(" and ( ");
+			
+			String[] toJoin = new String[toRemove.size()];
+			for(int i=0;i<toRemove.size();i++) {
+				toJoin[i] = " `value` = " + escapeString(toRemove.get(i).toString()) + " ";
+			}
+			statement.append(StringUtils.join(toJoin, " or ")).append(" )");
+			PreparedStatement query = connect.prepareStatement(statement.toString());
+			query.executeUpdate();
+		}
+		
+		
+		// handle toAdd
+		if(toAdd.size()>0) {
+			for(int i=0;i<toAdd.size();i++) {
+				PreparedStatement query = connect.prepareStatement("insert into `" + tableName + "` values (?, ?)");
+				query.setLong(1, id);
+				query.setString(2, toAdd.get(i).toString());
+				try{
+					query.executeUpdate();
+				} catch(SQLException e) {
+					e.printStackTrace();
+				}
+				
+			}
+		}
+		
+		
+	}
+	protected <E> void saveArray(String fieldName, Collection<E> aValue) throws SQLException {
+		Data._saveArray(this.tableName + "_" + fieldName, this.getId(), aValue);
+	}
+	
+	private static PreparedStatement escapeHelper = null;
+	public static String escapeString(String str) {
+		try
+		{
+			escapeHelper.setString(1, str);
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String rtn = escapeHelper.toString();
+		return rtn.substring( rtn.indexOf( ": " ) + 2 );
 	}
 	
 }
