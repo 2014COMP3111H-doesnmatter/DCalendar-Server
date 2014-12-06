@@ -4,6 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,7 +81,7 @@ public class Appointment extends Data
 	 * @throws SQLException
 	 */
 	public static boolean isLegal(long uid, long startTime, long endTime,
-			int frequency, long lastDay, long exceptApptId,
+			int frequency, long lastDay, long exceptApptId, long[] aWaitingId,
 			IsLegalExplain explain) throws SQLException {
 		// endTime should be greater than startTime
 		if (endTime <= startTime)
@@ -126,7 +128,12 @@ public class Appointment extends Data
 		}
 
 		// check conflict
-		return Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain);
+		if(!Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain)) return false;
+		for(long waitingId:aWaitingId) {
+			if(!Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, waitingId, 0, explain)) return false;
+		}
+		
+		return true;
 
 	}
 
@@ -146,21 +153,11 @@ public class Appointment extends Data
 
 	public static Appointment create(long initiatorId, String name,
 			long venueId, long startTime, long endTime, String info,
-			int frequency, long lastDay) throws SQLException {
-		Map<String, String> values = new HashMap<String, String>();
-		values.put("initiatorId", String.valueOf(initiatorId));
-		values.put("name", name);
-		values.put("venueId", String.valueOf(venueId));
-		values.put("startTime", String.valueOf(startTime));
-		values.put("endTime", String.valueOf(endTime));
-		values.put("info", info);
-		values.put("frequency", String.valueOf(frequency));
-		values.put("lastDay", String.valueOf(lastDay));
+			int frequency, long lastDay, long[] aWaitingId) throws SQLException {
+
 		int freqHelper = Appointment.computeFreqHelper(frequency, startTime);
-		values.put("freqHelper", String.valueOf(freqHelper));
 
 		Appointment rtn = new Appointment();
-		Data.create(rtn, values);
 		rtn.initiatorId = initiatorId;
 		rtn.name = name;
 		rtn.venueId = venueId;
@@ -170,6 +167,13 @@ public class Appointment extends Data
 		rtn.frequency = frequency;
 		rtn.lastDay = lastDay;
 		rtn.freqHelper = freqHelper;
+		if(aWaitingId != null) {
+			rtn.isJoint = true;
+			for(long waitingId:aWaitingId) {
+				rtn.aWaitingId.add(waitingId);
+			}
+		}
+		rtn.save();
 
 		return rtn;
 	}
@@ -451,7 +455,7 @@ public class Appointment extends Data
 		return 0;
 	}
 
-	public void save() throws Exception {
+	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(initiatorId));
 		values.put("name", name);
@@ -466,9 +470,11 @@ public class Appointment extends Data
 		values.put("freqHelper", String.valueOf(this.freqHelper));
 		
 		super.save(values);
-		this.saveArray("aAcceptedId", this.aAcceptedId);
-		this.saveArray("aRejectedId", this.aRejectedId);
-		this.saveArray("aWaitingId", this.aWaitingId);
+		if(this.isJoint) {
+			this.saveArray("aAcceptedId", this.aAcceptedId);
+			this.saveArray("aRejectedId", this.aRejectedId);
+			this.saveArray("aWaitingId", this.aWaitingId);
+		}
 	}
 
 	/**

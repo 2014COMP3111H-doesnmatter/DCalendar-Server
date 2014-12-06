@@ -89,7 +89,8 @@ public class Data
 	 */
 	protected void save(Map<String,String> values) throws SQLException {
 		if(isNew()) {
-			throw new SQLException("attemp to save a dangling record");
+			Data.create(this, values);
+			return;
 		}
 		
 		int nColumn = values.size();

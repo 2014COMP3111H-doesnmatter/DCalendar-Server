@@ -3,10 +3,13 @@ package api.appointment;
 import java.util.Date;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import db.Appointment;
 import db.Venue;
+import doesnserver.CommonResponses;
 import doesnserver.Session;
 import doesnutil.DateUtil;
 import api.ApiHandler;
@@ -69,18 +72,33 @@ public class add extends ApiHandler
 		// normalize last day
 		lastDay = DateUtil.earliestLastDay(endTime, frequency, lastDay);
 		
+		// read aWaitingId
+		JSONArray jaWaitingId = null;
+		long[] aWaitingId = null;
+		try
+		{
+			jaWaitingId = new JSONArray(params.get("aWaitingId"));
+			aWaitingId = new long[jaWaitingId.length()];
+			for(int i=0;i<jaWaitingId.length();i++) {
+				aWaitingId[i] = jaWaitingId.getLong(i);
+			}
+		} catch (JSONException e1)
+		{
+			return CommonResponses.showParamError();
+		}
+		
 		
 		// check legal
 		// TODO: check waiting legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
-		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, 0L, explain)) {
+		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, 0L, aWaitingId, explain)) {
 			rtn.put("rtnCode", this.getRtnCode(406));
 			rtn.put("explain", explain);
 			return rtn;
 		}
 		
 		// create appointment
-		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info, frequency, lastDay);
+		Appointment appt = Appointment.create(initiatorId, name, venueId, startTime, endTime, info, frequency, lastDay, aWaitingId);
 		
 		// set reminder
 		if(params.containsKey("reminderAhead")) {
