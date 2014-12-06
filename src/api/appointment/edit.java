@@ -1,6 +1,8 @@
 package api.appointment;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -11,6 +13,7 @@ import db.Venue;
 import doesnmatter.timeMachine.TimeMachine;
 import doesnserver.Session;
 import doesnutil.DateUtil;
+import doesnutil.WrapperUtil;
 import api.ApiHandler;
 
 public class edit extends ApiHandler
@@ -117,7 +120,13 @@ public class edit extends ApiHandler
 				|| frequency != appt.frequency || lastDay != appt.lastDay) {
 			
 			Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
-			if(!Appointment.isLegal(session.getActiveUserId(), startTime, endTime, frequency, lastDay, appt.getId(), explain)) {
+			// get candidiates from accepted, rejected and waiting
+			Set<Long> candidates = new HashSet<Long>();
+			candidates.addAll(appt.aAcceptedId);
+			candidates.addAll(appt.aRejectedId);
+			candidates.addAll(appt.aWaitingId);
+			
+			if(!Appointment.isLegal(session.getActiveUserId(), startTime, endTime, frequency, lastDay, appt.getId(), WrapperUtil.toArray(candidates), explain)) {
 				rtn.put("rtnCode", this.getRtnCode(408));
 				rtn.put("explain", explain);
 				return rtn;

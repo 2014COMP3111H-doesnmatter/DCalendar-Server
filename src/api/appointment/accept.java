@@ -8,11 +8,12 @@ import doesnserver.Session;
 import api.ApiHandler;
 import api.ApiHandler;
 
-public class confirm extends ApiHandler
+public class accept extends ApiHandler
 {
 
-	public confirm()
+	public accept()
 	{
+		this.requireLogin = true;
 		this.addParamConstraint("appointmentId", ParamCons.STRING);
 	}
 
