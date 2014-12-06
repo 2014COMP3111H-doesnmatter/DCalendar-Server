@@ -19,7 +19,7 @@ public class Notification
 	private static Map<Long, UserNotificationBuffer> monitors = new HashMap<Long, UserNotificationBuffer>();
 	static final long SCHEDULE_PERIOD = 15*60*1000L; // intervals to check notifications
 	static final long SCHEDULE_DELAY = 1000L; // add a small delay, because at exactly schedule beat, the event is "just about to happen",and is ambiguous
-	
+	static final long COMET_TIMEOUT = 10000L;
 	/**
 	 * get the next notification
 	 * @param uid
@@ -31,7 +31,7 @@ public class Notification
 			if(monitor.isEmpty()) {
 				try
 				{
-					monitor.wait();
+					monitor.wait(COMET_TIMEOUT);
 				} catch (InterruptedException e)
 				{
 					e.printStackTrace();

@@ -9,7 +9,6 @@ import org.json.JSONArray;
 public class UserNotificationBuffer
 {
 
-	private JSONArray lastPackedJson = null;
 	private long uid;
 	private List<Notification> aNotification = new ArrayList<Notification>(); //TODO: notification buffer goes here
 	public UserNotificationBuffer(long uid)
@@ -23,17 +22,16 @@ public class UserNotificationBuffer
 	/**
 	 * dump the buffer to a JSONArray for output
 	 * buffer will be cleared
-	 * if buffer is empty, it will return last result
+	 * if buffer is empty, it will return []
 	 * @return
 	 */
 	JSONArray packJson() {
-		if(this.isEmpty()) return lastPackedJson;
+		if(this.isEmpty()) return new JSONArray();
 		JSONArray rtn = new JSONArray();
 		for(int i=0; i<aNotification.size(); i++) {
 			rtn.put(aNotification.get(i).toJson());
 		}
 		aNotification.clear();
-		this.lastPackedJson = rtn;
 		return rtn;
 	}
 	/**
