@@ -27,7 +27,6 @@ public class test extends ApiHandler
 		
 		
 		Notification.add(session.getActiveUserId(), notification);
-		
 		rtn.put("rtnCode", this.getRtnCode(200));
 		return rtn;
 	}

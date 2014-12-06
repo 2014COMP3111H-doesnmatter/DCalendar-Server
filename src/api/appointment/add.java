@@ -25,6 +25,7 @@ public class add extends ApiHandler
 		this.addParamConstraint("frequency", ParamCons.INTEGER);
 		this.addParamConstraint("lastDay", ParamCons.INTEGER);
 		this.addParamConstraint("reminderAhead", ParamCons.INTEGER, true);
+		this.addParamConstraint("aWaitingId", ParamCons.STRING, "JSON array object", true);
 		this.addRtnCode(405, "venue not found");
 		this.addRtnCode(406, "illegal time");
 		this.addRtnCode(407, "illegal frequency");
@@ -70,6 +71,7 @@ public class add extends ApiHandler
 		
 		
 		// check legal
+		// TODO: check waiting legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
 		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, 0L, explain)) {
 			rtn.put("rtnCode", this.getRtnCode(406));

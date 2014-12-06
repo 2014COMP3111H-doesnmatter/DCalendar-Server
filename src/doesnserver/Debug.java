@@ -20,16 +20,7 @@ public class Debug
 		try
 		{
 			
-			Appointment a = Appointment.findById(3);
 			
-			System.out.println(a.aAcceptedId);
-			
-			
-			a.aAcceptedId.remove(2L);
-			a.aAcceptedId.add(4L);
-			System.out.println(a.aAcceptedId);
-
-			a.save();
 			
 		} catch (Exception e)
 		{

@@ -3,7 +3,9 @@ package db;
 import java.security.MessageDigest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.damien.miller.Bcrypt.BCrypt;
@@ -34,15 +36,28 @@ public class User extends Data
 	public static User findOne(String field, String value) throws SQLException {
 		ResultSet result = Data._find(User.class.getSimpleName(), field, value);
 		if(result.next()) {
-			User rtn = new User();
-			rtn.id = result.getLong("id");
-			rtn.username = result.getString("username");
-			rtn.passwordHashed = result.getString("passwordHashed");
-			return rtn;
+			return User.createOneFromResultSet(result);
 		}
 		else {
 			return null;
 		}
+	}
+	
+	public static List<User> list() throws SQLException {
+		ResultSet result = Data._findAll(User.class.getSimpleName());
+		List<User> rtn = new ArrayList<User>();
+		while(result.next()) {
+			rtn.add(User.createOneFromResultSet(result));
+		}
+		return rtn;
+	}
+	
+	private static User createOneFromResultSet(ResultSet result) throws SQLException {
+		User rtn = new User();
+		rtn.id = result.getLong("id");
+		rtn.username = result.getString("username");
+		rtn.passwordHashed = result.getString("passwordHashed");
+		return rtn;
 	}
 	
 	/**

@@ -14,12 +14,14 @@ public class add extends ApiHandler
 	public add() {
 		this.info = "add a new venue";
 		this.addParamConstraint("name");
+		this.addParamConstraint("capacity", ParamCons.INTEGER);
 		this.addRtnCode(201, "already exists");
 	}
 	
 	@Override
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
+		// TODO capacity
 		JSONObject rtn = new JSONObject();
 		String name = params.get("name");
 		Venue venue = Venue.findOne("name", name);
