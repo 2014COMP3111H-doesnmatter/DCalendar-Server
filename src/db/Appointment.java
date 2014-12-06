@@ -131,9 +131,9 @@ public class Appointment extends Data
 		}
 
 		// check conflict
-		if(!Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain)) return false;
+		if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain)) return false;
 		for(long waitingId:aWaitingId) {
-			if(!Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, waitingId, 0, explain)) return false;
+			if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, waitingId, 0, explain)) return false;
 		}
 		
 		return true;
@@ -593,38 +593,48 @@ public class Appointment extends Data
 		return startTime1 < endTime2 && startTime2 < endTime1;
 	}
 	
-
+	public boolean isConflictWithUser(long uid) {
+		return Appointment.isConflictWithUser(this.startTime, this.endTime, this.frequency,
+				this.lastDay, uid, 0L, null);
+	}
 	private static boolean isConflictWithUser(long startTime, long endTime, int frequency,
-			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) throws SQLException {
+			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) {
 		
-		long startOfDay = DateUtil.getStartOfDay(startTime);
-		List<Appointment> aAppt;
-		if (frequency == Frequency.DAILY)
-		{
-			long month = DateUtil.getStartOfMonth(startTime);
-			aAppt = Appointment.findByMonth(uid, month);
-			aAppt.addAll(Appointment
-					.findByMonth(uid, DateUtil.nextMonth(month)));
-		} else
-		{
-			aAppt = Appointment.findByDay(uid, startOfDay);
-		}
-	
-		for (Appointment iAppt : aAppt)
-		{
-			if (iAppt.id == exceptApptId)
-				continue;
-			if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+		try{
+			long startOfDay = DateUtil.getStartOfDay(startTime);
+			List<Appointment> aAppt;
+			if (frequency == Frequency.DAILY)
 			{
-				if (explain != null)
-				{
-					explain.explain =
-							"this appointment is conflict with appointment "
-									+ iAppt.name;
-				}
-				return false;
+				long month = DateUtil.getStartOfMonth(startTime);
+				aAppt = Appointment.findByMonth(uid, month);
+				aAppt.addAll(Appointment
+						.findByMonth(uid, DateUtil.nextMonth(month)));
+			} else
+			{
+				aAppt = Appointment.findByDay(uid, startOfDay);
 			}
+		
+			for (Appointment iAppt : aAppt)
+			{
+				if (iAppt.id == exceptApptId)
+					continue;
+				if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+				{
+					if (explain != null)
+					{
+						explain.explain =
+								"this appointment is conflict with appointment "
+										+ iAppt.name;
+					}
+					return true;
+				}
+			}
+			return false;
 		}
-		return true;
+		catch(Exception e) {
+			e.printStackTrace();
+			return true;
+		}
+		
 	}
 }
