@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import db.Appointment;
 import doesnserver.Session;
 import api.ApiHandler;
-import api.ApiHandler.ParamCons;
 
 public class reject extends ApiHandler
 {

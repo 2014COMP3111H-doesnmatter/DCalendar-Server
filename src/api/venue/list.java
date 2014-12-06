@@ -25,10 +25,7 @@ public class list extends ApiHandler
 		{
 			JSONArray venueJa = new JSONArray();
 			for(int i=0; i<aVenue.length; i++) {
-				JSONObject venueJo = new JSONObject();
-				venueJo.put("id", aVenue[i].getId());
-				venueJo.put("name", aVenue[i].name);
-				venueJa.put(venueJo);
+				venueJa.put(aVenue[i].toJson());
 			}
 			rtn.put("aVenue", venueJa);
 		}

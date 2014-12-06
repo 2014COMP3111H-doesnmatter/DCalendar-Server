@@ -41,13 +41,20 @@ public class Venue extends Data
 	public static Venue findById(long id) throws SQLException {
 		return findOne("id", String.valueOf(id));
 	}
-	public static Venue create(String name) throws SQLException {
+	public static Venue create(String name, int capacity) throws SQLException {
 		Venue rtn = new Venue();
-		Map<String,String> values = new HashMap<String,String>();
-		values.put("name", name);
-		Data.create(rtn, values);
+
 		rtn.name = name;
+		rtn.capacity = capacity;
+		rtn.save();
 		return rtn;
+	}
+	public void save() throws SQLException {
+		Map<String,String> values = new HashMap<String,String>();
+		values.put("name", this.name);
+		values.put("capacity", String.valueOf(this.capacity));
+		this.save(values);
+		
 	}
 	public JSONObject toJson() {
 		JSONObject rtn = new JSONObject();
