@@ -26,6 +26,7 @@ public class User extends Data
 
 	public String username;
 	private String passwordHashed;
+	public int rank;
 
 	/**
 	 * find a user by a field
@@ -68,6 +69,7 @@ public class User extends Data
 		rtn.id = result.getLong("id");
 		rtn.username = result.getString("username");
 		rtn.passwordHashed = result.getString("passwordHashed");
+		rtn.rank = result.getInt("rank");
 		return rtn;
 	}
 	
@@ -128,16 +130,12 @@ public class User extends Data
 	public static User create(String username, String passwordClear) throws SQLException {
 		String passwordHashed = hashPassword(passwordClear); // hash the password
 
-		// create values
-		Map<String, String> values = new HashMap<String, String>();
-		values.put("username", username);
-		values.put("passwordHashed", passwordHashed);
-
-		// construct return user
 		User rtn = new User();
-		Data.create(rtn, values);
 		rtn.username = username;
 		rtn.passwordHashed = passwordHashed;
+		rtn.rank = 0;
+		rtn.save();
+		
 		return rtn;
 	}
 
@@ -145,12 +143,13 @@ public class User extends Data
 	 * save all modifications
 	 * @throws Exception 
 	 */
-	public void save() throws Exception {
+	public void save() throws SQLException {
 		
 		// create values
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("username", username);
 		values.put("passwordHashed", passwordHashed);
+		values.put("rank", String.valueOf(this.rank));
 		
 		// save
 		super.save(values);
@@ -181,12 +180,18 @@ public class User extends Data
 			
 			jo.put("id", getId());
 			jo.put("username", username);
+			jo.put("rank", this.rank);
 			return jo;
 		} catch (JSONException e)
 		{
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public static final class Rank {
+		public static final int DEFAULT = 0;
+		public static final int ADMIN = 1;
 	}
 	
 	
