@@ -14,18 +14,16 @@ public class UserRemovalInitiated extends Notification
 		this.user = user;
 	}
 	@Override
-	public JSONObject toJson() {
-		// TODO Auto-generated method stub
-		JSONObject rtn = super.toJson();
+	public JSONObject getValueForOutput() {
 		try
 		{
-			rtn.put("user", this.user.toJson());
-		} catch (JSONException e)
+			return this.user.toJson();
+		} catch (Exception e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new JSONObject();
 		}
-		return rtn;
 	}
 
 }

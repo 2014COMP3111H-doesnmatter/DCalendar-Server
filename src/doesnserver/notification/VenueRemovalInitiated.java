@@ -13,18 +13,16 @@ public class VenueRemovalInitiated extends Notification
 		this.venue = venue;
 	}
 	@Override
-	public JSONObject toJson() {
-		// TODO Auto-generated method stub
-		JSONObject rtn = super.toJson();
+	public JSONObject getValueForOutput() {
 		try
 		{
-			rtn.put("venue", this.venue.toJson());
-		} catch (JSONException e)
+			return this.venue.toJson();
+		} catch (Exception e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new JSONObject();
 		}
-		return rtn;
 	}
 	
 

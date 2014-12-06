@@ -12,18 +12,16 @@ public class JointAppointmentInitiated extends Notification
 		this.appt = appt;
 	}
 	@Override
-	public JSONObject toJson() {
-
-		JSONObject rtn = super.toJson();
+	public JSONObject getValueForOutput() {
 		try
 		{
-			rtn.put("appointment", this.appt.toJson(0));
+			return this.appt.toJson(0);
 		} catch (Exception e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new JSONObject();
 		}
-		return rtn;
 	}
 	
 

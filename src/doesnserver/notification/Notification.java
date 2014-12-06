@@ -14,7 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Notification
+public abstract class Notification
 {
 	private static Map<Long, UserNotificationBuffer> monitors = new HashMap<Long, UserNotificationBuffer>();
 	static final long SCHEDULE_PERIOD = 15*60*1000L; // intervals to check notifications
@@ -114,7 +114,8 @@ public class Notification
 		JSONObject rtn = new JSONObject();
 		try
 		{
-			rtn.put("notificationType", this.getClass().getSimpleName());
+			rtn.put("type", this.getClass().getSimpleName());
+			rtn.put("value", this.getValueForOutput());
 		} catch (JSONException e)
 		{
 			// TODO Auto-generated catch block
@@ -122,6 +123,7 @@ public class Notification
 		}
 		return rtn;
 	}
+	public abstract JSONObject getValueForOutput();
 	
 	
 }
