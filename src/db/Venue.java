@@ -53,6 +53,7 @@ public class Venue extends Data
 		JSONObject rtn = new JSONObject();
 		try
 		{
+			rtn.put("id", this.getId());
 			rtn.put("name", this.name);
 			rtn.put("capacity", this.capacity);
 		} catch (JSONException e)
