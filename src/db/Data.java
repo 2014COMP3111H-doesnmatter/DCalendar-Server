@@ -200,13 +200,13 @@ public class Data
 		if(toRemove.size()>0) {
 			StringBuilder statement = new StringBuilder("delete from `");
 			statement.append(tableName).append("` where `key` = ")
-			.append(String.valueOf(id)).append(" and ( ");
+			.append(String.valueOf(id)).append(" and `value` in ( ");
 			
 			String[] toJoin = new String[toRemove.size()];
 			for(int i=0;i<toRemove.size();i++) {
-				toJoin[i] = " `value` = " + escapeString(toRemove.get(i).toString()) + " ";
+				toJoin[i] = escapeString(toRemove.get(i).toString());
 			}
-			statement.append(StringUtils.join(toJoin, " or ")).append(" )");
+			statement.append(StringUtils.join(toJoin, ", ")).append(" )");
 			PreparedStatement query = connect.prepareStatement(statement.toString());
 			query.executeUpdate();
 		}

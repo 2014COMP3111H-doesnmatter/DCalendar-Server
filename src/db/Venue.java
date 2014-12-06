@@ -60,7 +60,7 @@ public class Venue extends Data
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}															
 		
 		return rtn;
 	}

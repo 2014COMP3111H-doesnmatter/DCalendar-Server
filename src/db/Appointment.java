@@ -9,14 +9,17 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import doesnmatter.timeMachine.TimeMachine;
 import doesnutil.DateUtil;
+import doesnutil.WrapperUtil;
 
 public class Appointment extends Data
 {
@@ -185,40 +188,6 @@ public class Appointment extends Data
 		if (!resultSet.next())
 			return null;
 		return createOneFromResultSet(resultSet);
-	}
-
-	/**
-	 * construct an Appointment object from a SQL ResultSet only reads current
-	 * record, ResultSet.next() will never be called in this function
-	 * 
-	 * @param resultSet
-	 * @return
-	 * @throws SQLException
-	 */
-	private static Appointment createOneFromResultSet(ResultSet resultSet)
-			throws SQLException {
-		Appointment rtn = new Appointment();
-		rtn.id = resultSet.getLong("id");
-		rtn.name = resultSet.getString("name");
-		rtn.initiatorId = resultSet.getLong("initiatorId");
-		rtn.venueId = resultSet.getLong("venueId");
-		rtn.startTime = resultSet.getLong("startTime");
-		rtn.endTime = resultSet.getLong("endTime");
-		rtn.info = resultSet.getString("info");
-		rtn.frequency = resultSet.getInt("frequency");
-		rtn.lastDay = resultSet.getLong("lastDay");
-		rtn.freqHelper = resultSet.getInt("freqHelper");
-
-		// aAcceptedId
-		rtn.findArray("aAcceptedId", rtn.aAcceptedId);
-
-		// aRejectedId
-		rtn.findArray("aRejectedId", rtn.aRejectedId);
-		
-		// aWaitingId
-		rtn.findArray("aWaitingId", rtn.aWaitingId);
-
-		return rtn;
 	}
 
 	public static List<Appointment> findByDay(long uid, long day)
@@ -455,6 +424,40 @@ public class Appointment extends Data
 		return 0;
 	}
 
+	/**
+	 * construct an Appointment object from a SQL ResultSet only reads current
+	 * record, ResultSet.next() will never be called in this function
+	 * 
+	 * @param resultSet
+	 * @return
+	 * @throws SQLException
+	 */
+	private static Appointment createOneFromResultSet(ResultSet resultSet)
+			throws SQLException {
+		Appointment rtn = new Appointment();
+		rtn.id = resultSet.getLong("id");
+		rtn.name = resultSet.getString("name");
+		rtn.initiatorId = resultSet.getLong("initiatorId");
+		rtn.venueId = resultSet.getLong("venueId");
+		rtn.startTime = resultSet.getLong("startTime");
+		rtn.endTime = resultSet.getLong("endTime");
+		rtn.info = resultSet.getString("info");
+		rtn.frequency = resultSet.getInt("frequency");
+		rtn.lastDay = resultSet.getLong("lastDay");
+		rtn.freqHelper = resultSet.getInt("freqHelper");
+	
+		// aAcceptedId
+		rtn.findArray("aAcceptedId", rtn.aAcceptedId);
+	
+		// aRejectedId
+		rtn.findArray("aRejectedId", rtn.aRejectedId);
+		
+		// aWaitingId
+		rtn.findArray("aWaitingId", rtn.aWaitingId);
+	
+		return rtn;
+	}
+
 	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(initiatorId));
@@ -468,7 +471,7 @@ public class Appointment extends Data
 		this.freqHelper =
 				Appointment.computeFreqHelper(this.frequency, this.startTime);
 		values.put("freqHelper", String.valueOf(this.freqHelper));
-		
+		values.put("isJoint", this.isJoint?"1":"0");
 		super.save(values);
 		if(this.isJoint) {
 			this.saveArray("aAcceptedId", this.aAcceptedId);
@@ -486,6 +489,7 @@ public class Appointment extends Data
 	public JSONObject toJson(long uid) throws Exception {
 		JSONObject apptJo = new JSONObject();
 		apptJo.put("id", this.getId());
+		apptJo.put("initiator", User.findById(this.initiatorId).toJson());
 		apptJo.put("name", this.name);
 		apptJo.put("venueId", this.venueId);
 		apptJo.put("startTime", this.startTime);
@@ -495,84 +499,19 @@ public class Appointment extends Data
 		apptJo.put("lastDay", this.lastDay);
 		if (uid >= 0)
 			apptJo.put("reminderAhead", this.getReminderAhead(uid));
-		return apptJo;
-	}
-
-	private boolean isConflictWith(long startTime, long endTime, int frequency,
-			long lastDay) {
-
-		// day span
-		long startDay1 = DateUtil.getStartOfDay(this.startTime);
-		long startDay2 = DateUtil.getStartOfDay(startTime);
-		long endDay1 = this.lastDay;
-		long endDay2 = lastDay;
-		if (endDay2 < startDay1 || endDay1 < startDay2)
-			return false;
-
-		// frequency
-		int freq1 = this.frequency;
-		int freq2 = frequency;
-		int freqHelper1;
-		int freqHelper2;
-		if (freq1 == Frequency.WEEKLY || freq2 == Frequency.WEEKLY)
-		{
-			freqHelper1 =
-					Appointment.computeFreqHelper(Frequency.WEEKLY, startDay1);
-			freqHelper2 =
-					Appointment.computeFreqHelper(Frequency.WEEKLY, startDay2);
-			if (freqHelper1 != freqHelper2)
-				return false;
-		} else if (freq1 == Frequency.MONTHLY || freq2 == Frequency.MONTHLY)
-		{
-			freqHelper1 =
-					Appointment.computeFreqHelper(Frequency.MONTHLY, startDay1);
-			freqHelper2 =
-					Appointment.computeFreqHelper(Frequency.MONTHLY, startDay2);
-			if (freqHelper1 != freqHelper2)
-				return false;
-		}
-
-		// time
-		long startTime1 = DateUtil.transposeToDay(this.startTime, startDay2);
-		long endTime1 = DateUtil.transposeToDay(this.endTime, startDay2);
-		long startTime2 = startTime;
-		long endTime2 = endTime;
-
-		return startTime1 < endTime2 && startTime2 < endTime1;
-	}
-	
-	private static boolean isConflictWithUser(long startTime, long endTime, int frequency,
-			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) throws SQLException {
+		apptJo.put("isJoint", this.isJoint);
 		
-		long startOfDay = DateUtil.getStartOfDay(startTime);
-		List<Appointment> aAppt;
-		if (frequency == Frequency.DAILY)
-		{
-			long month = DateUtil.getStartOfMonth(startTime);
-			aAppt = Appointment.findByMonth(uid, month);
-			aAppt.addAll(Appointment
-					.findByMonth(uid, DateUtil.nextMonth(month)));
-		} else
-		{
-			aAppt = Appointment.findByDay(uid, startOfDay);
+		if(this.isJoint) {
+			apptJo.put("aWaitingUser", User.listById(
+					WrapperUtil.toArray(this.aWaitingId)));
+			apptJo.put("aAcceptedUser", User.listById(
+					WrapperUtil.toArray(this.aAcceptedId)));
+			apptJo.put("aRejectedUser", User.listById(
+					WrapperUtil.toArray(this.aRejectedId)));
+			
 		}
-
-		for (Appointment iAppt : aAppt)
-		{
-			if (iAppt.id == exceptApptId)
-				continue;
-			if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
-			{
-				if (explain != null)
-				{
-					explain.explain =
-							"this appointment is conflict with appointment "
-									+ iAppt.name;
-				}
-				return false;
-			}
-		}
-		return true;
+		
+		return apptJo;
 	}
 
 	public long getReminderAhead(long uid) throws SQLException {
@@ -597,5 +536,95 @@ public class Appointment extends Data
 	public void delete() throws SQLException {
 		Reminder.deleteByAppt(this.getId());
 		super.delete();
+	}
+	
+	public void addAcceptedUser(long uid) {
+		if(!this.aWaitingId.contains(uid)) return;
+		this.aWaitingId.remove(uid);
+		this.aAcceptedId.add(uid);
+	}
+	
+	public void addRejectedUser(long uid) {
+		if(!this.aWaitingId.contains(uid)) return;
+		this.aWaitingId.remove(uid);
+		this.aRejectedId.add(uid);
+	}
+
+	private boolean isConflictWith(long startTime, long endTime, int frequency,
+			long lastDay) {
+	
+		// day span
+		long startDay1 = DateUtil.getStartOfDay(this.startTime);
+		long startDay2 = DateUtil.getStartOfDay(startTime);
+		long endDay1 = this.lastDay;
+		long endDay2 = lastDay;
+		if (endDay2 < startDay1 || endDay1 < startDay2)
+			return false;
+	
+		// frequency
+		int freq1 = this.frequency;
+		int freq2 = frequency;
+		int freqHelper1;
+		int freqHelper2;
+		if (freq1 == Frequency.WEEKLY || freq2 == Frequency.WEEKLY)
+		{
+			freqHelper1 =
+					Appointment.computeFreqHelper(Frequency.WEEKLY, startDay1);
+			freqHelper2 =
+					Appointment.computeFreqHelper(Frequency.WEEKLY, startDay2);
+			if (freqHelper1 != freqHelper2)
+				return false;
+		} else if (freq1 == Frequency.MONTHLY || freq2 == Frequency.MONTHLY)
+		{
+			freqHelper1 =
+					Appointment.computeFreqHelper(Frequency.MONTHLY, startDay1);
+			freqHelper2 =
+					Appointment.computeFreqHelper(Frequency.MONTHLY, startDay2);
+			if (freqHelper1 != freqHelper2)
+				return false;
+		}
+	
+		// time
+		long startTime1 = DateUtil.transposeToDay(this.startTime, startDay2);
+		long endTime1 = DateUtil.transposeToDay(this.endTime, startDay2);
+		long startTime2 = startTime;
+		long endTime2 = endTime;
+	
+		return startTime1 < endTime2 && startTime2 < endTime1;
+	}
+	
+
+	private static boolean isConflictWithUser(long startTime, long endTime, int frequency,
+			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) throws SQLException {
+		
+		long startOfDay = DateUtil.getStartOfDay(startTime);
+		List<Appointment> aAppt;
+		if (frequency == Frequency.DAILY)
+		{
+			long month = DateUtil.getStartOfMonth(startTime);
+			aAppt = Appointment.findByMonth(uid, month);
+			aAppt.addAll(Appointment
+					.findByMonth(uid, DateUtil.nextMonth(month)));
+		} else
+		{
+			aAppt = Appointment.findByDay(uid, startOfDay);
+		}
+	
+		for (Appointment iAppt : aAppt)
+		{
+			if (iAppt.id == exceptApptId)
+				continue;
+			if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+			{
+				if (explain != null)
+				{
+					explain.explain =
+							"this appointment is conflict with appointment "
+									+ iAppt.name;
+				}
+				return false;
+			}
+		}
+		return true;
 	}
 }

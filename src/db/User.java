@@ -5,10 +5,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.damien.miller.Bcrypt.BCrypt;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,6 +54,15 @@ public class User extends Data
 		return rtn;
 	}
 	
+	public static JSONArray listById(long[] aId) {
+		JSONArray ja = new JSONArray();
+		for(long l:aId) {
+			User user = User.findById(l);
+			if(user != null) ja.put(user.toJson());
+		}
+		return ja;
+	}
+	
 	private static User createOneFromResultSet(ResultSet result) throws SQLException {
 		User rtn = new User();
 		rtn.id = result.getLong("id");
@@ -66,8 +77,15 @@ public class User extends Data
 	 * @return
 	 * @throws SQLException
 	 */
-	public static User findById(long id) throws SQLException {
-		return findOne("id", String.valueOf(id));
+	public static User findById(long id){
+		try
+		{
+			return findOne("id", String.valueOf(id));
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -170,4 +188,6 @@ public class User extends Data
 			return null;
 		}
 	}
+	
+	
 }

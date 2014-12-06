@@ -21,6 +21,7 @@ public class accept extends ApiHandler
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
 		// TODO confirm
+		
 		return super.main(params, session);
 	}
 
