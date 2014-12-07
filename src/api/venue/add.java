@@ -34,10 +34,7 @@ public class add extends ApiHandler
 			rtn.put("rtnCode", this.getRtnCode(200));
 		}
 		
-		JSONObject venueJo = new JSONObject();
-		venueJo.put("id", venue.getId());
-		venueJo.put("name", venue.name);
-		rtn.put("venue", venueJo);
+		rtn.put("venue", venue.toJson());
 		
 		return rtn;
 	}
