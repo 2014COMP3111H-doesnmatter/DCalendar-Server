@@ -272,12 +272,13 @@ public class Appointment extends Data
 		// and startTime >= $startDay and endTime <=
 		// $(endDay+DateUtil.DAY_LENGTH)
 		PreparedStatement statement =
-				connect.prepareStatement("select * from (" + Appointment.makeSqlSelectorForUser(uid) + ") where frequency = ? "
+				connect.prepareStatement("select * from (" + Appointment.makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
 						+ "and startTime >= ? and endTime <= ?");
 		statement.setInt(1, Frequency.ONCE);
 		statement.setLong(2, startDay);
 		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
 		ResultSet resultSet = statement.executeQuery();
+		System.out.println(statement);
 		while (resultSet.next())
 		{
 			aAppt.add(Appointment.createOneFromResultSet(resultSet));
