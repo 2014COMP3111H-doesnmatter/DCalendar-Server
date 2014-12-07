@@ -452,16 +452,18 @@ public class Appointment extends Data
 		rtn.frequency = resultSet.getInt("frequency");
 		rtn.lastDay = resultSet.getLong("lastDay");
 		rtn.freqHelper = resultSet.getInt("freqHelper");
-	
-		// aAcceptedId
-		rtn.findArray("aAcceptedId", rtn.aAcceptedId);
-	
-		// aRejectedId
-		rtn.findArray("aRejectedId", rtn.aRejectedId);
+		rtn.isJoint = resultSet.getInt("isJoint")>0;
+		if(rtn.isJoint) {
+			// aAcceptedId
+			rtn.findArray("aAcceptedId", rtn.aAcceptedId);
 		
-		// aWaitingId
-		rtn.findArray("aWaitingId", rtn.aWaitingId);
-	
+			// aRejectedId
+			rtn.findArray("aRejectedId", rtn.aRejectedId);
+			
+			// aWaitingId
+			rtn.findArray("aWaitingId", rtn.aWaitingId);
+		}
+		
 		return rtn;
 	}
 	

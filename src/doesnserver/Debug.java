@@ -27,11 +27,7 @@ public class Debug
 		
 		try
 		{
-			long[] arr = new long[]{1L,2L,4L};
-			System.out.println(Arrays.toString(arr));
-			List<Long> list = new ArrayList<Long>();
-			WrapperUtil.toCollection(arr, list);
-			System.out.println(list.toString());
+			
 		} catch (Exception e)
 		{
 			// TODO Auto-generated catch block
