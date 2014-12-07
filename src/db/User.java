@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import doesnserver.notification.Notification;
+import doesnserver.notification.UserRemovalFinalized;
 import doesnserver.notification.UserRemovalInitiated;
 import doesnutil.EncodeUtil;
 
@@ -30,6 +31,8 @@ public class User extends Data
 	private String passwordHashed;
 	private boolean isRemoving;
 	public boolean isAdmin;
+	public String fullName;
+	public String email;
 
 	/**
 	 * find a user by a field
@@ -74,6 +77,8 @@ public class User extends Data
 		rtn.passwordHashed = result.getString("passwordHashed");
 		rtn.isRemoving = result.getInt("isRemoving")==1;
 		rtn.isAdmin = result.getInt("isAdmin")==1;
+		rtn.fullName = result.getString("fullName");
+		rtn.email = result.getString("email");
 		return rtn;
 	}
 	
@@ -131,13 +136,15 @@ public class User extends Data
 	 * @return the newly created user
 	 * @throws SQLException 
 	 */
-	public static User create(String username, String passwordClear) throws SQLException {
+	public static User create(String username, String passwordClear, String fullName, String email) throws SQLException {
 		String passwordHashed = hashPassword(passwordClear); // hash the password
 
 		User rtn = new User();
 		rtn.username = username;
 		rtn.passwordHashed = passwordHashed;
 		rtn.isAdmin = false;
+		rtn.fullName = fullName;
+		rtn.email = email;
 		rtn.save();
 		
 		return rtn;
@@ -155,7 +162,8 @@ public class User extends Data
 		values.put("passwordHashed", passwordHashed);
 		values.put("isAdmin", this.isAdmin?"1":"0");
 		values.put("isRemoving", this.isRemoving?"1":"0");
-		
+		values.put("fullName", this.fullName);
+		values.put("email", this.email);
 		// save
 		super.save(values);
 	}
@@ -186,6 +194,8 @@ public class User extends Data
 			jo.put("id", getId());
 			jo.put("username", username);
 			jo.put("isAdmin", this.isAdmin);
+			jo.put("email", this.email);
+			jo.put("fullName", this.fullName);
 			return jo;
 		} catch (JSONException e)
 		{
@@ -216,11 +226,26 @@ public class User extends Data
 		this.isRemoving = false;
 		try
 		{
+			UserRemovalFinalized notification = new UserRemovalFinalized(this);
+			User admin = User.findOneAdmin();
+			if(admin != null) Notification.add(admin.getId(), notification);
 			this.delete();
+			
 		} catch (SQLException e)
 		{
 			e.printStackTrace();
 		}
 		
+	}
+	public static User findOneAdmin() {
+		try
+		{
+			return User.findOne("isAdmin", "1");
+		} catch (SQLException e)
+		{
+			
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
