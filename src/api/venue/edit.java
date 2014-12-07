@@ -42,7 +42,7 @@ public class edit extends ApiHandler
 			return rtn;
 		}
 		
-		if(params.containsKey("name") && params.get("name") != venue.name) {
+		if(params.containsKey("name") && !params.get("name").equals(venue.name)) {
 			if(Venue.findOne("name", params.get("name")) != null) {
 				rtn.put("rtnCode", this.getRtnCode(201));
 				return rtn;
