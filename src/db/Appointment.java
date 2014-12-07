@@ -33,7 +33,7 @@ public class Appointment extends Data
 	public long endTime;
 	public String name;
 	public String info;
-	public boolean isJoint;
+	private boolean isJoint;
 	public long venueId;
 	public long initiatorId;
 	public int frequency;
@@ -563,6 +563,27 @@ public class Appointment extends Data
 		if(!this.aWaitingId.contains(uid)) return;
 		this.aWaitingId.remove(uid);
 		this.aRejectedId.add(uid);
+	}
+	public boolean isJoint() {
+		return this.isJoint;
+	}
+	public void setJoint(boolean isJoint) {
+		if(this.isJoint == isJoint) return;
+		if(isJoint) {
+			this.isJoint = true;
+		}
+		else {
+			try{
+				this.isJoint = false;
+				this.deleteArray("aWaitingId");
+				this.deleteArray("aAcceptedId");
+				this.deleteArray("aRejectedId");
+			}
+			catch(SQLException e) {
+				e.printStackTrace();
+			}
+			
+		}
 	}
 
 	private boolean isConflictWith(long startTime, long endTime, int frequency,
