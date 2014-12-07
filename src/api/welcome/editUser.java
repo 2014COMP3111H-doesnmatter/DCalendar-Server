@@ -43,7 +43,7 @@ public class editUser extends ApiHandler
 			return rtn;
 		}
 		
-		if(params.containsKey("username")) {
+		if(params.containsKey("username") && params.get("username") != targetUser.username) {
 			if(User.findOne("username", params.get("username")) != null) {
 				rtn.put("rtnCode", this.getRtnCode(201));
 				return rtn;

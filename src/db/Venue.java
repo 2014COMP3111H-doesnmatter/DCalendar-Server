@@ -4,7 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +15,7 @@ public class Venue extends Data
 {
 	public String name;
 	public int capacity;
+	public Set<Long> aWaitingId = new HashSet<Long>();
 	protected Venue() {
 		super(Venue.class.getSimpleName());
 	}
@@ -54,6 +57,7 @@ public class Venue extends Data
 		values.put("name", this.name);
 		values.put("capacity", String.valueOf(this.capacity));
 		this.save(values);
+		this.saveArray("aWaitingId", this.aWaitingId);
 		
 	}
 	public JSONObject toJson() {
