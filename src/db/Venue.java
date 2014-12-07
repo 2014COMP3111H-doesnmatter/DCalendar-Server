@@ -141,6 +141,7 @@ public class Venue extends Data
 		Venue rtn = new Venue();
 		rtn.id = result.getLong("id");
 		rtn.name = result.getString("name");
+		rtn.capacity = result.getInt("capacity");
 		rtn.findArray("aWaitingId", rtn.aWaitingId);
 		return rtn;
 	}
