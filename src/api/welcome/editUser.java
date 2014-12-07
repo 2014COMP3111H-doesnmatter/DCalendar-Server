@@ -15,6 +15,7 @@ public class editUser extends ApiHandler
 	{
 		this.requireLogin = true;
 		this.addParamConstraint("id", ParamCons.INTEGER);
+		this.addParamConstraint("password", true);
 		this.addParamConstraint("username", true);
 		this.addParamConstraint("fullName", true);
 		this.addParamConstraint("email", true);
@@ -26,16 +27,19 @@ public class editUser extends ApiHandler
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
 		JSONObject rtn = new JSONObject();
-		User activeUser = User.findById(session.getActiveUserId());
-		if(!activeUser.isAdmin) {
-			rtn.put("rtnCode", this.getRtnCode(405));
-			return rtn;
-		}
+		
 		
 		long targetUserId = Long.parseLong(params.get("id"));
 		User targetUser = User.findById(targetUserId);
 		if(targetUser == null) {
 			rtn.put("rtnCode", this.getRtnCode(406));
+		}
+		
+		long activeUserId = session.getActiveUserId();
+		User activeUser = User.findById(activeUserId);
+		if(targetUserId != activeUserId && !activeUser.isAdmin) {
+			rtn.put("rtnCode", this.getRtnCode(405));
+			return rtn;
 		}
 		
 		if(params.containsKey("username")) {
@@ -46,6 +50,9 @@ public class editUser extends ApiHandler
 		}
 		if(params.containsKey("email")) {
 			targetUser.email = params.get("email");
+		}
+		if(params.containsKey("password")) {
+			targetUser.setPassword(params.get("password"));
 		}
 		targetUser.save();
 		rtn.put("rtnCode", this.getRtnCode(200));
