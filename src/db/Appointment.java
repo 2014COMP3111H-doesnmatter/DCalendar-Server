@@ -189,7 +189,7 @@ public class Appointment extends Data
 		rtn.frequency = frequency;
 		rtn.lastDay = lastDay;
 		rtn.freqHelper = freqHelper;
-		if(aWaitingId != null) {
+		if(aWaitingId != null && aWaitingId.length>0) {
 			rtn.isJoint = true;
 			for(long waitingId:aWaitingId) {
 				rtn.aWaitingId.add(waitingId);
@@ -743,4 +743,54 @@ public class Appointment extends Data
 	}
 	
  
+}
+
+class TimeSlotHelper
+{
+	private static final int nSlot = 24*4;
+	private boolean[] aIsAvailable = new boolean[nSlot];
+	private long startOfDay;
+	public TimeSlotHelper(long startOfDay) {
+		this.startOfDay = startOfDay;
+		Arrays.fill(this.aIsAvailable, true);
+	}
+	private int getIndex(long time) {
+		return (int) ((time - this.startOfDay) / Appointment.TIME_UNIT);
+	}
+	private long getSlot(int i) {
+		return this.startOfDay + i*Appointment.TIME_UNIT;
+	}
+	public void removeBySpan(long startTime, long endTime) {
+		int startIndex = this.getIndex(startTime);
+		int endIndex = this.getIndex(endTime);
+		for(int i=startIndex; i<=endIndex; i++) {
+			this.aIsAvailable[i] = false;
+		}
+	}
+	public String toSentence() {
+		List<Long> aStartTime = new ArrayList<Long>();
+		List<Long> aEndTime = new ArrayList<Long>();
+		
+		boolean currAvailability = false;
+		for(int i=0; i<nSlot; i++) {
+			if(this.aIsAvailable[i] == currAvailability) continue;
+			currAvailability = this.aIsAvailable[i];
+			if(currAvailability) {
+				aStartTime.add(this.getSlot(i));
+			}
+			else {
+				aEndTime.add(this.getSlot(i));
+			}
+		}
+		if(currAvailability) {
+			aEndTime.add(this.getSlot(nSlot));
+		}
+		
+		String[] toJoin = new String[aStartTime.size()];
+		for(int i=0;i<aStartTime.size();i++) {
+			Date startD = new Date(aStartTime.get(i));
+			Date endD = new Date(aEndTime.get(i));
+			
+		}
+	}
 }

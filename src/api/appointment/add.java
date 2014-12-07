@@ -74,18 +74,22 @@ public class add extends ApiHandler
 		
 		// read aWaitingId
 		JSONArray jaWaitingId = null;
-		long[] aWaitingId = null;
-		try
-		{
-			jaWaitingId = new JSONArray(params.get("aWaitingId"));
-			aWaitingId = new long[jaWaitingId.length()];
-			for(int i=0;i<jaWaitingId.length();i++) {
-				aWaitingId[i] = jaWaitingId.getLong(i);
+		long[] aWaitingId = new long[0];
+		if(params.containsKey("aWaitingId")) {
+			try
+			{
+				jaWaitingId = new JSONArray(params.get("aWaitingId"));
+				aWaitingId = new long[jaWaitingId.length()];
+				for(int i=0;i<jaWaitingId.length();i++) {
+					aWaitingId[i] = jaWaitingId.getLong(i);
+				}
+				
+			} catch (JSONException e1)
+			{
+				return CommonResponses.showParamError();
 			}
-		} catch (JSONException e1)
-		{
-			return CommonResponses.showParamError();
 		}
+		
 		
 		
 		// check legal
