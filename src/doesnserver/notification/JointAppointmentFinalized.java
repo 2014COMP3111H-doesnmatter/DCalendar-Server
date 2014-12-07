@@ -26,6 +26,12 @@ public class JointAppointmentFinalized extends Notification
 			return new JSONObject();
 		}
 	}
+
+
+	@Override
+	public int hashCode() {
+		return (int) this.appt.getId();
+	}
 	
 
 

@@ -124,6 +124,11 @@ public abstract class Notification
 		return rtn;
 	}
 	public abstract JSONObject getValueForOutput();
+	@Override
+	public boolean equals(Object obj) {
+		if(!this.getClass().getName().equals(obj.getClass().getName())) return false;
+		return this.hashCode() == obj.hashCode();
+	}
 	
 	
 }

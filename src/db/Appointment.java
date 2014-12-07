@@ -278,7 +278,6 @@ public class Appointment extends Data
 		statement.setLong(2, startDay);
 		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
 		ResultSet resultSet = statement.executeQuery();
-		System.out.println(statement);
 		while (resultSet.next())
 		{
 			aAppt.add(Appointment.createOneFromResultSet(resultSet));

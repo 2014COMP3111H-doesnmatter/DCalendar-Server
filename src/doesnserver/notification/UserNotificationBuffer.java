@@ -2,7 +2,9 @@ package doesnserver.notification;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 
@@ -10,7 +12,7 @@ public class UserNotificationBuffer
 {
 
 	private long uid;
-	private List<Notification> aNotification = new ArrayList<Notification>(); //TODO: notification buffer goes here
+	private Set<Notification> aNotification = new HashSet<Notification>(); //TODO: notification buffer goes here
 	public UserNotificationBuffer(long uid)
 	{
 		this.uid = uid;
@@ -28,8 +30,8 @@ public class UserNotificationBuffer
 	JSONArray packJson() {
 		if(this.isEmpty()) return new JSONArray();
 		JSONArray rtn = new JSONArray();
-		for(int i=0; i<aNotification.size(); i++) {
-			rtn.put(aNotification.get(i).toJson());
+		for(Notification notification:this.aNotification) {
+			rtn.put(notification.toJson());
 		}
 		aNotification.clear();
 		return rtn;

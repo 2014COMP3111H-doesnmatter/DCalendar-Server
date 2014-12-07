@@ -18,6 +18,8 @@ import org.json.JSONException;
 import db.Appointment;
 import db.Data;
 import db.User;
+import doesnserver.notification.UserRemovalFinalized;
+import doesnserver.notification.UserRemovalInitiated;
 import doesnutil.DateUtil;
 import doesnutil.WrapperUtil;
 
@@ -27,7 +29,10 @@ public class Debug
 		
 		try
 		{
-			
+			User u = User.findById(1L);
+			UserRemovalFinalized n1 = new UserRemovalFinalized(u);
+			UserRemovalInitiated n2 = new UserRemovalInitiated(u);
+			System.out.println(n1.equals(n2));
 		} catch (Exception e)
 		{
 			// TODO Auto-generated catch block

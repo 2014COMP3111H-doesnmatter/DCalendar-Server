@@ -25,4 +25,9 @@ public class VenueRemovalFinalized extends Notification
 			return new JSONObject();
 		}
 	}
+	
+	@Override
+	public int hashCode() {
+		return (int) this.venue.getId();
+	}
 }

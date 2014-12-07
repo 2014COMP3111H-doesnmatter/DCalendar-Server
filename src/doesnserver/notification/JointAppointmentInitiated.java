@@ -24,5 +24,10 @@ public class JointAppointmentInitiated extends Notification
 		}
 	}
 	
+	@Override
+	public int hashCode() {
+		return (int) this.appt.getId();
+	}
+	
 
 }
