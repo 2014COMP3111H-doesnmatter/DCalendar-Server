@@ -3,6 +3,8 @@ package db;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -492,6 +494,15 @@ public class Appointment extends Data
 		return rtn;
 	}
 	
+	public static String getAvailableTimeSlot(long[] aUid) {
+		TimeSlotHelper helper = new TimeSlotHelper(
+				DateUtil.getStartOfDay(TimeMachine.getNow().getTime()), 5);
+		for(long uid:aUid) {
+			helper.removeByUser(uid);
+		}
+		return helper.toSentence();
+	}
+	
 	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(initiatorId));
@@ -747,11 +758,18 @@ public class Appointment extends Data
 
 class TimeSlotHelper
 {
-	private static final int nSlot = 24*4;
-	private boolean[] aIsAvailable = new boolean[nSlot];
+	private static final int nDaySlot = 24*4;
+	private boolean[] aIsAvailable = null;
+	private int nSlot = 0;
 	private long startOfDay;
-	public TimeSlotHelper(long startOfDay) {
+	private int nDay;
+	private static DateFormat dateFormat = new SimpleDateFormat("MMM.dd hh:mm aaa");
+	
+	public TimeSlotHelper(long startOfDay, int nDay) {
 		this.startOfDay = startOfDay;
+		this.nDay = nDay;
+		this.nSlot = nDaySlot*nDay;
+		this.aIsAvailable = new boolean[this.nSlot];
 		Arrays.fill(this.aIsAvailable, true);
 	}
 	private int getIndex(long time) {
@@ -764,7 +782,29 @@ class TimeSlotHelper
 		int startIndex = this.getIndex(startTime);
 		int endIndex = this.getIndex(endTime);
 		for(int i=startIndex; i<=endIndex; i++) {
+			if(i<0 || i>=nSlot) continue;
 			this.aIsAvailable[i] = false;
+		}
+	}
+	public void removeByAppointment(Appointment appt) {
+		this.removeBySpan(DateUtil.transposeToDay(appt.startTime,this.startOfDay)
+				, DateUtil.transposeToDay(appt.endTime, this.startOfDay));
+	}
+	public void removeByUser(long uid) {
+		try
+		{
+			
+			List<Appointment> aAppt = new ArrayList<Appointment>();
+			for(int i=0; i<this.nDay;i++) {
+				aAppt.addAll(Appointment.findByDay(uid, this.startOfDay + i*DateUtil.DAY_LENGTH));
+			}
+			for(Appointment appt:aAppt) {
+				this.removeByAppointment(appt);
+			}
+			
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
 		}
 	}
 	public String toSentence() {
@@ -786,11 +826,15 @@ class TimeSlotHelper
 			aEndTime.add(this.getSlot(nSlot));
 		}
 		
-		String[] toJoin = new String[aStartTime.size()];
+		StringBuilder sb = new StringBuilder("");
 		for(int i=0;i<aStartTime.size();i++) {
 			Date startD = new Date(aStartTime.get(i));
 			Date endD = new Date(aEndTime.get(i));
-			
+			sb.append(dateFormat.format(startD))
+			.append(" to ").append(dateFormat.format(endD))
+			.append("\n");
 		}
+		
+		return sb.toString();
 	}
 }

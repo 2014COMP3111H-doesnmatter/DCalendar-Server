@@ -24,7 +24,7 @@ public class add extends ApiHandler
 		// TODO capacity
 		JSONObject rtn = new JSONObject();
 		String name = params.get("name");
-		int capacity = Integer.parseInt(params.get("capaticy"));
+		int capacity = Integer.parseInt(params.get("capacity"));
 		Venue venue = Venue.findOne("name", name);
 		if(venue != null) {
 			rtn.put("rtnCode", this.getRtnCode(201));
