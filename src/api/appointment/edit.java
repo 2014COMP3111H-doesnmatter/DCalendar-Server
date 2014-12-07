@@ -74,7 +74,6 @@ public class edit extends ApiHandler
 				rtn.put("rtnCode", this.getRtnCode(407));
 				return rtn;
 			}
-			appt.venueId = venueId;
 		}
 
 		// name
@@ -102,6 +101,8 @@ public class edit extends ApiHandler
 		long lastDay =
 				params.containsKey("lastDay") ? Long.parseLong(params
 						.get("lastDay")) : appt.lastDay;
+		long venueId = params.containsKey("venueId") ? Long.parseLong(params
+				.get("venueId")) : appt.venueId;
 
 		// cannot edit event in the past
 		if (startTime < TimeMachine.getNow().getTime())
@@ -128,7 +129,7 @@ public class edit extends ApiHandler
 		lastDay = DateUtil.earliestLastDay(endTime, frequency, lastDay);
 
 		if (startTime != appt.startTime || endTime != appt.endTime
-				|| frequency != appt.frequency || lastDay != appt.lastDay)
+				|| frequency != appt.frequency || lastDay != appt.lastDay || venueId != appt.venueId)
 		{
 
 			Appointment.IsLegalExplain explain =
@@ -140,7 +141,7 @@ public class edit extends ApiHandler
 			candidates.addAll(appt.aWaitingId);
 
 			if (!Appointment.isLegal(session.getActiveUserId(), startTime,
-					endTime, frequency, lastDay, appt.getId(), WrapperUtil
+					endTime, frequency, lastDay, venueId, appt.getId(), WrapperUtil
 							.toArray(candidates), explain))
 			{
 				rtn.put("rtnCode", this.getRtnCode(408));
@@ -152,6 +153,7 @@ public class edit extends ApiHandler
 			appt.endTime = endTime;
 			appt.frequency = frequency;
 			appt.lastDay = lastDay;
+			appt.venueId = venueId;
 
 		}
 

@@ -82,6 +82,15 @@ public abstract class Notification
 	}
 	
 	/**
+	 * stop notifying a user. used when log out.
+	 * @param uid
+	 */
+	public static void stop(long uid) {
+		UserNotificationBuffer buffer = getMonitorFor(uid);
+		buffer.stopNotification();
+	}
+	
+	/**
 	 * time to find some notifications
 	 */
 	private static void loopCallBack() {

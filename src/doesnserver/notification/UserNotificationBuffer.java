@@ -53,5 +53,9 @@ public class UserNotificationBuffer
 		this.aNotification.add(notification);
 		this.notifyAll();
 	}
+	public synchronized void stopNotification() {
+		this.aNotification.clear();
+		this.notifyAll();
+	}
 
 }

@@ -89,9 +89,8 @@ public class add extends ApiHandler
 		
 		
 		// check legal
-		// TODO: check waiting legal
 		Appointment.IsLegalExplain explain = new Appointment.IsLegalExplain();
-		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, 0L, aWaitingId, explain)) {
+		if(!Appointment.isLegal(initiatorId, startTime, endTime, frequency, lastDay, venueId, 0L, aWaitingId, explain)) {
 			rtn.put("rtnCode", this.getRtnCode(406));
 			rtn.put("explain", explain);
 			return rtn;

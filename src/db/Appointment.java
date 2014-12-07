@@ -87,7 +87,7 @@ public class Appointment extends Data
 	 * @throws SQLException
 	 */
 	public static boolean isLegal(long uid, long startTime, long endTime,
-			int frequency, long lastDay, long exceptApptId, long[] aWaitingId,
+			int frequency, long lastDay, long venueId, long exceptApptId, long[] aWaitingId,
 			IsLegalExplain explain) throws SQLException {
 		// endTime should be greater than startTime
 		if (endTime <= startTime)
@@ -132,8 +132,24 @@ public class Appointment extends Data
 						"cannot schedule an appointment that cover multiple days";
 			return false;
 		}
+		
+		// check venue capacity
+		Venue venue = Venue.findById(venueId);
+		if(venue == null) {
+			if (explain != null)
+				explain.explain =
+						"venue does not exist";
+			return false;
+		}
+		if(venue.capacity <= aWaitingId.length) {
+			if (explain != null)
+				explain.explain =
+						"venue capacity exceeded";
+			return false;
+		}
 
 		// check conflict
+		if(Appointment.isConflictWithVenue(startTime, endTime, frequency, lastDay, venueId, exceptApptId, explain)) return false;
 		if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain)) return false;
 		for(long waitingId:aWaitingId) {
 			if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, waitingId, 0, explain)) return false;
@@ -289,16 +305,15 @@ public class Appointment extends Data
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
 
-		// select * from Appointment where frequency = $DAILY and uid = $uid
+		// select * from Appointment where frequency = $DAILY 
 		// and startTime <= $(endDay+DateUtil.DAY_LENGTH)
 		// and lastDay >= $startDay
 		PreparedStatement statement =
-				connect.prepareStatement("select * from Appointment where frequency = ? and initiatorId = ? "
+				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and lastDay >= ? ");
 		statement.setInt(1, Frequency.DAILY);
-		statement.setLong(2, uid);
-		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
-		statement.setLong(4, startDay);
+		statement.setLong(2, endDay + DateUtil.DAY_LENGTH);
+		statement.setLong(3, startDay);
 		ResultSet resultSet = statement.executeQuery();
 		while (resultSet.next())
 		{
@@ -310,20 +325,19 @@ public class Appointment extends Data
 	private static List<Appointment> findWeeklyByDay(long uid, long day)
 			throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
-		// select * from Appointment where frequency = $WEEKLY and uid = $uid
+		// select * from Appointment where frequency = $WEEKLY 
 		// and startTime <= $(day + DateUtil.DAY_LENGTH)
 		// and lastDay >= $day
 		// and freqHelper = $freqHelper
 		PreparedStatement statement =
-				connect.prepareStatement("select * from Appointment where frequency = ? and initiatorId = ? "
+				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
 						+ "and startTime <= ? "
 						+ "and lastDay >= ? "
 						+ "and freqHelper = ? ");
 		statement.setInt(1, Frequency.WEEKLY);
-		statement.setLong(2, uid);
-		statement.setLong(3, day + DateUtil.DAY_LENGTH);
-		statement.setLong(4, day);
-		statement.setInt(5, Appointment
+		statement.setLong(2, day + DateUtil.DAY_LENGTH);
+		statement.setLong(3, day);
+		statement.setInt(4, Appointment
 				.computeFreqHelper(Frequency.WEEKLY, day));
 		ResultSet resultSet = statement.executeQuery();
 		while (resultSet.next())
@@ -346,16 +360,15 @@ public class Appointment extends Data
 	private static List<Appointment> findWeeklyByDaySpan(long uid,
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
-		// select * from Appointment where frequency = $WEEKLY and uid = $uid
+		// select * from Appointment where frequency = $WEEKLY 
 		// and startTime <= $(endDay+DateUtil.DAY_LENGTH)
 		// and lastDay >= $startDay
 		PreparedStatement statement =
-				connect.prepareStatement("select * from Appointment where frequency = ? and initiatorId = ? "
+				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and lastDay >= ? ");
 		statement.setInt(1, Frequency.WEEKLY);
-		statement.setLong(2, uid);
-		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
-		statement.setLong(4, startDay);
+		statement.setLong(2, endDay + DateUtil.DAY_LENGTH);
+		statement.setLong(3, startDay);
 
 		ResultSet resultSet = statement.executeQuery();
 		while (resultSet.next())
@@ -369,12 +382,11 @@ public class Appointment extends Data
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
 		PreparedStatement statement = null;
-		// select * from Appointment where frequency = $MONTHLY and initiatorId
-		// = $uid
+		// select * from Appointment where frequency = $MONTHLY 
 		// and startTime <= $(endDay + DateUtil.DAY_LENGTH)
 		// and $startDay <= lastDay
 		String str =
-				"select * from Appointment where frequency = ? and initiatorId = ? "
+				"select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and ? <= lastDay ";
 
 		Date startD = new Date(startDay);
@@ -384,9 +396,9 @@ public class Appointment extends Data
 			// if within a month
 			str += "and ? <= freqHelper and freqHelper <= ? ";
 			statement = connect.prepareStatement(str);
-			statement.setInt(5, Appointment.computeFreqHelper(
+			statement.setInt(4, Appointment.computeFreqHelper(
 					Frequency.MONTHLY, startDay));
-			statement.setInt(6, Appointment.computeFreqHelper(
+			statement.setInt(5, Appointment.computeFreqHelper(
 					Frequency.MONTHLY, endDay));
 		} else
 		{
@@ -398,19 +410,18 @@ public class Appointment extends Data
 			str +=
 					"and (? <= freqHelper and freqHelper <= ? or freqHelper <= ?) ";
 			statement = connect.prepareStatement(str);
-			statement.setInt(5, Appointment.computeFreqHelper(
+			statement.setInt(4, Appointment.computeFreqHelper(
 					Frequency.MONTHLY, startDay));
-			statement.setInt(6, Appointment.computeFreqHelper(
+			statement.setInt(5, Appointment.computeFreqHelper(
 					Frequency.MONTHLY, endOfMonth1));
-			statement.setInt(7, Appointment.computeFreqHelper(
+			statement.setInt(6, Appointment.computeFreqHelper(
 					Frequency.MONTHLY, endDay));
 
 		}
 
 		statement.setInt(1, Frequency.MONTHLY);
-		statement.setLong(2, uid);
-		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
-		statement.setLong(4, startDay);
+		statement.setLong(2, endDay + DateUtil.DAY_LENGTH);
+		statement.setLong(3, startDay);
 
 		ResultSet resultSet = statement.executeQuery();
 		while (resultSet.next())
@@ -658,9 +669,37 @@ public class Appointment extends Data
 		return startTime1 < endTime2 && startTime2 < endTime1;
 	}
 	
+	
+	
 	public boolean isConflictWithUser(long uid) {
 		return Appointment.isConflictWithUser(this.startTime, this.endTime, this.frequency,
 				this.lastDay, uid, 0L, null);
+	}
+	private static boolean isConflictWithVenue(long startTime, long endTime, int frequency,
+			long lastDay, long venueId, long exceptApptId, IsLegalExplain explain) {
+		try {
+			List<Appointment> aAppt = Appointment.findByVenue(venueId);
+			for (Appointment iAppt : aAppt)
+			{
+				if (iAppt.id == exceptApptId)
+					continue;
+				if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+				{
+					if (explain != null)
+					{
+						explain.explain =
+								"this appointment is conflict with appointment "
+										+ iAppt.name + " in location";
+					}
+					return true;
+				}
+			}
+			return false;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	private static boolean isConflictWithUser(long startTime, long endTime, int frequency,
 			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) {
