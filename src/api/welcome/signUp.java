@@ -15,8 +15,8 @@ public class signUp extends ApiHandler
 	{
 		this.addParamConstraint("username");
 		this.addParamConstraint("password");
-		this.addParamConstraint("fullName", true);
-		this.addParamConstraint("email", true);
+		this.addParamConstraint("fullName");
+		this.addParamConstraint("email");
 		this.addRtnCode(201, "user already exist");
 	}
 
