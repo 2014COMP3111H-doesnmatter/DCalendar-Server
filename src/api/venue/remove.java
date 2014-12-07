@@ -18,12 +18,6 @@ public class remove extends ApiHandler
 	}
 	
 	@Override
-	public boolean checkParams(Map<String, String> params) {
-		if(!StringUtils.isNumeric(params.get("id"))) return false;
-		return true;
-	}
-	
-	@Override
 	public JSONObject main(Map<String, String> params, Session session)
 			throws Exception {
 

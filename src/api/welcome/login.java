@@ -39,10 +39,7 @@ public class login extends ApiHandler
 		session.setActiveUserId(u.getId());
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
-			JSONObject userJo = new JSONObject();
-			userJo.put("username", u.username);
-			userJo.put("id", u.getId());
-			rtn.put("user", userJo);
+			rtn.put("user", u.toJson());
 		}
 		
 		
