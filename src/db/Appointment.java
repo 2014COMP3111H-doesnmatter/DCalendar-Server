@@ -453,6 +453,7 @@ public class Appointment extends Data
 		rtn.lastDay = resultSet.getLong("lastDay");
 		rtn.freqHelper = resultSet.getInt("freqHelper");
 		rtn.isJoint = resultSet.getInt("isJoint")>0;
+		System.out.println(rtn.isJoint);
 		if(rtn.isJoint) {
 			// aAcceptedId
 			rtn.findArray("aAcceptedId", rtn.aAcceptedId);
