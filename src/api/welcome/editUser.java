@@ -21,6 +21,7 @@ public class editUser extends ApiHandler
 		this.addParamConstraint("email", true);
 		this.addRtnCode(405, "permission denied");
 		this.addRtnCode(406, "user not found");
+		this.addRtnCode(201, "already exists");
 	}
 
 	@Override
@@ -43,6 +44,10 @@ public class editUser extends ApiHandler
 		}
 		
 		if(params.containsKey("username")) {
+			if(User.findOne("username", params.get("username")) != null) {
+				rtn.put("rtnCode", this.getRtnCode(201));
+				return rtn;
+			}
 			targetUser.username = params.get("username");
 		}
 		if(params.containsKey("fullName")) {
@@ -56,6 +61,7 @@ public class editUser extends ApiHandler
 		}
 		targetUser.save();
 		rtn.put("rtnCode", this.getRtnCode(200));
+		rtn.put("user", targetUser.toJson());
 		return rtn;
 	}
 

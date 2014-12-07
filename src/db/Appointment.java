@@ -249,7 +249,14 @@ public class Appointment extends Data
 		aAppt.addAll(Appointment.findMonthlyByDaySpan(uid, month, endOfMonth));
 		return aAppt;
 	}
-
+	public static List<Appointment> findByVenue(long venueId) throws SQLException {
+		List<Appointment> aAppt = new ArrayList<Appointment>();
+		ResultSet resultSet = Data._find(Appointment.class.getSimpleName(), "venueId", String.valueOf(venueId));
+		while(resultSet.next()) {
+			aAppt.add(Appointment.createOneFromResultSet(resultSet));
+		}
+		return aAppt;
+	}
 	private static List<Appointment> findOnceByDaySpan(long uid, long startDay,
 			long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
@@ -457,6 +464,8 @@ public class Appointment extends Data
 	
 		return rtn;
 	}
+	
+	
 
 	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
@@ -637,4 +646,6 @@ public class Appointment extends Data
 		}
 		
 	}
+	
+ 
 }
