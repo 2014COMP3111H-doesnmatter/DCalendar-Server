@@ -186,6 +186,9 @@ public class edit extends ApiHandler
 				
 				// set waiting user
 				WrapperUtil.toCollection(aWaitingId, appt.aWaitingId);
+				
+				// send notificaion
+				appt.sendInitiatedNotification();
 			} catch (JSONException e1)
 			{
 				return CommonResponses.showParamError();

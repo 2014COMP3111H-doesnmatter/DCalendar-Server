@@ -18,6 +18,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import doesnmatter.timeMachine.TimeMachine;
+import doesnserver.notification.JointAppointmentFinalized;
+import doesnserver.notification.JointAppointmentInitiated;
+import doesnserver.notification.Notification;
 import doesnutil.DateUtil;
 import doesnutil.WrapperUtil;
 
@@ -257,6 +260,7 @@ public class Appointment extends Data
 		}
 		return aAppt;
 	}
+	
 	private static List<Appointment> findOnceByDaySpan(long uid, long startDay,
 			long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
@@ -559,6 +563,11 @@ public class Appointment extends Data
 		if(!this.aWaitingId.contains(uid)) return;
 		this.aWaitingId.remove(uid);
 		this.aAcceptedId.add(uid);
+		if(this.isFinalized()) this.sendFinalizedNotification();
+	}
+	
+	public boolean isFinalized() {
+		return this.aWaitingId.size()<=0  && this.aRejectedId.size()<=0;
 	}
 	
 	public void addRejectedUser(long uid) {
@@ -586,6 +595,16 @@ public class Appointment extends Data
 			}
 			
 		}
+	}
+	public void sendInitiatedNotification() {
+		for(long uid:this.aWaitingId) {
+			JointAppointmentInitiated notification = new JointAppointmentInitiated(this);
+			Notification.add(uid, notification);
+		}
+	}
+	private void sendFinalizedNotification() {
+		JointAppointmentFinalized notification = new JointAppointmentFinalized(this);
+		Notification.add(this.initiatorId, notification);
 	}
 
 	private boolean isConflictWith(long startTime, long endTime, int frequency,

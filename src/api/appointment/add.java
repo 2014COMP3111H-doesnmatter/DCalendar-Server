@@ -106,6 +106,11 @@ public class add extends ApiHandler
 			appt.setReminderAhead(activeUserId, reminderAhead);
 		}
 		
+		// send notification
+		if(appt.isJoint()) {
+			appt.sendInitiatedNotification();
+		}
+		
 		// construct return object
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
