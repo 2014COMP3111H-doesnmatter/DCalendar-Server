@@ -260,6 +260,9 @@ public class Appointment extends Data
 		}
 		return aAppt;
 	}
+	private static String makeSqlSelectorForUser(long uid) {
+		return "select * from Appointment where ( initiatorId = " + String.valueOf(uid) + " or exists(select 1 from Appointment_aAcceptedId where key = Appointment.id and value = " + String.valueOf(uid) + ")) ";
+	}
 	
 	private static List<Appointment> findOnceByDaySpan(long uid, long startDay,
 			long endDay) throws SQLException {
@@ -471,8 +474,14 @@ public class Appointment extends Data
 		return rtn;
 	}
 	
+	public static List<Appointment> createFromResultSet(ResultSet result) throws SQLException {
+		List<Appointment> rtn = new ArrayList<Appointment>();
+		while(result.next()) {
+			rtn.add(createOneFromResultSet(result));
+		}
+		return rtn;
+	}
 	
-
 	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(initiatorId));

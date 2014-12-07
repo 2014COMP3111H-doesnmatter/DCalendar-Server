@@ -144,6 +144,13 @@ public class Venue extends Data
 		rtn.findArray("aWaitingId", rtn.aWaitingId);
 		return rtn;
 	}
+	public static List<Venue> createFromResultSet(ResultSet result) throws SQLException {
+		List<Venue> rtn = new ArrayList<Venue>();
+		while(result.next()) {
+			rtn.add(createOneFromResultSet(result));
+		}
+		return rtn;
+	}
 	@Override
 	public void delete() throws SQLException {
 		// also delete appointments

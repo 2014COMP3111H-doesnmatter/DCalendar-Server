@@ -63,6 +63,16 @@ public class Data
 		return result;
 	}
 	
+	public static ResultSet _findByArray(String tableName, String field, String value) throws SQLException {
+		PreparedStatement statement = connect.prepareStatement("select * from `"+tableName+"` where exists (select 1 from `" + getArrayTableName(tableName, field) + "` where `key` = `" + tableName + "`.`id` and `value` = ?)");
+		statement.setString(1, value);
+		return statement.executeQuery();
+	}
+	
+	private static String getArrayTableName(String tableName, String field) {
+		return tableName + "_" + field;
+	}
+	
 	public static ResultSet _findAll(String tableName) throws SQLException {
 		PreparedStatement statement = connect.prepareStatement(" select * from `" + tableName + "`" );
 		ResultSet result = statement.executeQuery();

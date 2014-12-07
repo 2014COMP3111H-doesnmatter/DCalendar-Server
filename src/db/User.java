@@ -14,9 +14,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import doesnserver.notification.JointAppointmentInitiated;
 import doesnserver.notification.Notification;
 import doesnserver.notification.UserRemovalFinalized;
 import doesnserver.notification.UserRemovalInitiated;
+import doesnserver.notification.VenueRemovalInitiated;
 import doesnutil.EncodeUtil;
 
 public class User extends Data
@@ -247,5 +249,35 @@ public class User extends Data
 			e.printStackTrace();
 			return null;
 		}
+	}
+	public void refreshNotificaion() {
+		try
+		{
+			// check user isRemoving
+			if(this.isRemoving()) {
+				UserRemovalInitiated notification = new UserRemovalInitiated(this);
+				Notification.add(this.getId(), notification);
+			}
+			
+			// check venue isRemoving
+			List<Venue> aVenue = Venue.createFromResultSet(Data._findByArray("Venue", "aWaitingId", String.valueOf(this.getId())));
+			for(Venue venue:aVenue) {
+				VenueRemovalInitiated notification = new VenueRemovalInitiated(venue);
+				Notification.add(this.getId(), notification);
+			}
+			
+			// check appointment isWaiting
+			List<Appointment> aAppt = Appointment.createFromResultSet(Data._findByArray("Appointment", "aWaitingId", String.valueOf(this.getId())));
+			for(Appointment appt:aAppt) {
+				JointAppointmentInitiated notification = new JointAppointmentInitiated(appt);
+				Notification.add(this.getId(), notification);
+			}
+			
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+			return;
+		}
+		
 	}
 }

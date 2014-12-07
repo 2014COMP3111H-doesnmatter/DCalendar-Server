@@ -37,6 +37,10 @@ public class login extends ApiHandler
 		}
 		
 		session.setActiveUserId(u.getId());
+		
+		// refresh notification when logging in
+		u.refreshNotificaion();
+		
 		rtn.put("rtnCode", this.getRtnCode(200));
 		{
 			rtn.put("user", u.toJson());
