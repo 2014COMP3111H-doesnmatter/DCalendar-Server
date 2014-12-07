@@ -23,7 +23,7 @@ public class debug extends ApiHandler
 			throws Exception {
 		JSONObject rtn = new JSONObject();
 		rtn.put("rtnCode", this.getRtnCode(200));
-		rtn.put("value", "a");
+		rtn.put("value", Appointment.findByVenue(2).get(0).toJson(0));
 		return rtn;
 	}
 

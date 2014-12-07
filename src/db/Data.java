@@ -187,7 +187,11 @@ public class Data
 	protected <E> void findArray(String fieldName, Collection<E> rtn) throws SQLException {
 		Data._findArray(this.tableName + "_" + fieldName, this.getId(), rtn);
 	}
-	
+	public static void _deleteArray(String tableName, long id) throws SQLException {
+		PreparedStatement query = connect.prepareStatement("delete from `" + tableName + "` where `key` = ?");
+		query.setLong(1, id);
+		query.executeUpdate();
+	}
 	public static <E> void _saveArray(String tableName, long id, Collection<E> aValue) throws SQLException {
 		List<E> ori = new ArrayList<E>();
 		_findArray(tableName, id, ori);
@@ -232,6 +236,9 @@ public class Data
 	protected <E> void saveArray(String fieldName, Collection<E> aValue) throws SQLException {
 		Data._saveArray(this.tableName + "_" + fieldName, this.getId(), aValue);
 	}
+	protected void deleteArray(String fieldName) throws SQLException {
+		Data._deleteArray(this.tableName + "_" + fieldName, this.getId());
+	}
 	
 	private static PreparedStatement escapeHelper = null;
 	public static String escapeString(String str) {
@@ -246,5 +253,6 @@ public class Data
 		String rtn = escapeHelper.toString();
 		return rtn.substring( rtn.indexOf( ": " ) + 2 );
 	}
+	
 	
 }

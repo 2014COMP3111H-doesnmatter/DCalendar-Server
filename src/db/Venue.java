@@ -5,11 +5,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import doesnserver.notification.Notification;
+import doesnserver.notification.VenueRemovalFinalized;
+import doesnserver.notification.VenueRemovalInitiated;
 
 public class Venue extends Data
 {
@@ -37,8 +42,7 @@ public class Venue extends Data
 		if(!result.next()) {
 			return null;
 		}
-		rtn.id = result.getLong("id");
-		rtn.name = result.getString("name");
+		rtn = Venue.createOneFromResultSet(result);
 		return rtn;
 	}
 	public static Venue findById(long id) throws SQLException {
@@ -75,5 +79,81 @@ public class Venue extends Data
 		
 		return rtn;
 	}
-
+	public boolean isRemoving() {
+		return this.aWaitingId.size() > 0;
+	}
+	public void initiateRemoval() {
+		if(this.isRemoving()) return;
+		try
+		{
+			List<Appointment> aAppt = Appointment.findByVenue(this.getId());
+			// if no user is concerned, finalize it
+			if(aAppt.size() <= 0) {
+				this.finalizeRemovalWithoutChecking();
+				return;
+			}
+			this.aWaitingId.clear();
+			for(Appointment appt:aAppt) {
+				this.aWaitingId.add(appt.initiatorId);
+				VenueRemovalInitiated notification = new VenueRemovalInitiated(this);
+				Notification.add(appt.initiatorId, notification);
+			}
+			this.save();
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	public void addConfirmedUser(long uid) {
+		if(!this.isRemoving()) return;
+		this.aWaitingId.remove(uid);
+		
+		if(this.aWaitingId.size()<=0) {
+			this.finalizeRemovalWithoutChecking();
+		}
+		else {
+			try
+			{
+				this.save();
+			} catch (SQLException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	private void finalizeRemovalWithoutChecking() {
+		User admin = User.findOneAdmin();
+		if(admin != null) {
+			VenueRemovalFinalized notification = new VenueRemovalFinalized(this);
+			Notification.add(admin.getId(), notification);
+		}
+		try
+		{
+			this.delete();
+			
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	private static Venue createOneFromResultSet(ResultSet result) throws SQLException {
+		Venue rtn = new Venue();
+		rtn.id = result.getLong("id");
+		rtn.name = result.getString("name");
+		rtn.findArray("aWaitingId", rtn.aWaitingId);
+		return rtn;
+	}
+	@Override
+	public void delete() throws SQLException {
+		// also delete appointments
+		List<Appointment> aAppt = Appointment.findByVenue(this.getId());
+		for(Appointment appt:aAppt) {
+			appt.delete();
+		}
+		
+		this.deleteArray("aWaitingId");
+		super.delete();
+	}
+	
 }

@@ -544,6 +544,12 @@ public class Appointment extends Data
 
 	public void delete() throws SQLException {
 		Reminder.deleteByAppt(this.getId());
+		if(this.isJoint) {
+			this.deleteArray("aWaitingId");
+			this.deleteArray("aRejectedId");
+			this.deleteArray("aAcceptedId");
+		}
+		
 		super.delete();
 	}
 	
