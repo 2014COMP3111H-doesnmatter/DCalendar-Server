@@ -37,6 +37,8 @@ public class reject extends ApiHandler
 		}
 		
 		a.addRejectedUser(activeUserId);
+		a.save();
+		rtn.put("rtnCode", this.getRtnCode(200));
 		return rtn;
 	}
 	

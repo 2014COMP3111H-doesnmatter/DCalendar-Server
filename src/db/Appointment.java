@@ -261,23 +261,22 @@ public class Appointment extends Data
 		return aAppt;
 	}
 	private static String makeSqlSelectorForUser(long uid) {
-		return "select * from Appointment where ( initiatorId = " + String.valueOf(uid) + " or exists(select 1 from Appointment_aAcceptedId where key = Appointment.id and value = " + String.valueOf(uid) + ")) ";
+		return "select * from Appointment where ( initiatorId = " + String.valueOf(uid) + " or exists(select 1 from Appointment_aAcceptedId where `key` = Appointment.id and value = " + String.valueOf(uid) + ")) ";
 	}
 	
 	private static List<Appointment> findOnceByDaySpan(long uid, long startDay,
 			long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
 
-		// select * from Appointment where frequency = $ONCE and uid = $uid
+		// select * from Appointment where frequency = $ONCE
 		// and startTime >= $startDay and endTime <=
 		// $(endDay+DateUtil.DAY_LENGTH)
 		PreparedStatement statement =
-				connect.prepareStatement("select * from Appointment where frequency = ? and initiatorId = ? "
+				connect.prepareStatement("select * from (" + Appointment.makeSqlSelectorForUser(uid) + ") where frequency = ? "
 						+ "and startTime >= ? and endTime <= ?");
 		statement.setInt(1, Frequency.ONCE);
-		statement.setLong(2, uid);
-		statement.setLong(3, startDay);
-		statement.setLong(4, endDay + DateUtil.DAY_LENGTH);
+		statement.setLong(2, startDay);
+		statement.setLong(3, endDay + DateUtil.DAY_LENGTH);
 		ResultSet resultSet = statement.executeQuery();
 		while (resultSet.next())
 		{

@@ -45,6 +45,8 @@ public class accept extends ApiHandler
 		}
 		
 		a.addAcceptedUser(activeUserId);
+		a.save();
+		rtn.put("rtnCode", this.getRtnCode(200));
 		return rtn;
 	}
 
