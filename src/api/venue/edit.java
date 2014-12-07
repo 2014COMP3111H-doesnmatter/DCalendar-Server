@@ -16,7 +16,7 @@ public class edit extends ApiHandler
 	public edit()
 	{
 		this.requireLogin = true;
-		this.addParamConstraint("venueId", ParamCons.INTEGER);
+		this.addParamConstraint("id", ParamCons.INTEGER);
 		this.addParamConstraint("name", true);
 		this.addParamConstraint("capacity", ParamCons.INTEGER, true);
 		this.addRtnCode(405, "permission denied");
