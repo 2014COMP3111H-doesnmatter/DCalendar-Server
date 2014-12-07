@@ -513,11 +513,11 @@ public class Appointment extends Data
 		apptJo.put("isJoint", this.isJoint);
 		
 		if(this.isJoint) {
-			apptJo.put("aWaitingUser", User.listById(
+			apptJo.put("aWaiting", User.listById(
 					WrapperUtil.toArray(this.aWaitingId)));
-			apptJo.put("aAcceptedUser", User.listById(
+			apptJo.put("aAccepted", User.listById(
 					WrapperUtil.toArray(this.aAcceptedId)));
-			apptJo.put("aRejectedUser", User.listById(
+			apptJo.put("aRejected", User.listById(
 					WrapperUtil.toArray(this.aRejectedId)));
 			
 		}
