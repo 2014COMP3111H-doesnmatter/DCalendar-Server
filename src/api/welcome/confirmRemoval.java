@@ -20,7 +20,7 @@ public class confirmRemoval extends ApiHandler
 			throws Exception {
 		JSONObject rtn = new JSONObject();
 		
-		// TODO confirm removal
+		
 		
 		rtn.put("rtnCode", this.getRtnCode(200));
 		return super.main(params, session);

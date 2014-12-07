@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import doesnserver.notification.Notification;
+import doesnserver.notification.UserRemovalInitiated;
 import doesnutil.EncodeUtil;
 
 public class User extends Data
@@ -26,7 +28,8 @@ public class User extends Data
 
 	public String username;
 	private String passwordHashed;
-	public int rank;
+	private boolean isRemoving;
+	public boolean isAdmin;
 
 	/**
 	 * find a user by a field
@@ -69,7 +72,8 @@ public class User extends Data
 		rtn.id = result.getLong("id");
 		rtn.username = result.getString("username");
 		rtn.passwordHashed = result.getString("passwordHashed");
-		rtn.rank = result.getInt("rank");
+		rtn.isRemoving = result.getInt("isRemoving")==1;
+		rtn.isAdmin = result.getInt("isAdmin")==1;
 		return rtn;
 	}
 	
@@ -133,7 +137,7 @@ public class User extends Data
 		User rtn = new User();
 		rtn.username = username;
 		rtn.passwordHashed = passwordHashed;
-		rtn.rank = 0;
+		rtn.isAdmin = false;
 		rtn.save();
 		
 		return rtn;
@@ -149,7 +153,8 @@ public class User extends Data
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("username", username);
 		values.put("passwordHashed", passwordHashed);
-		values.put("rank", String.valueOf(this.rank));
+		values.put("isAdmin", this.isAdmin?"1":"0");
+		values.put("isRemoving", this.isRemoving?"1":"0");
 		
 		// save
 		super.save(values);
@@ -180,7 +185,7 @@ public class User extends Data
 			
 			jo.put("id", getId());
 			jo.put("username", username);
-			jo.put("rank", this.rank);
+			jo.put("isAdmin", this.isAdmin);
 			return jo;
 		} catch (JSONException e)
 		{
@@ -189,10 +194,33 @@ public class User extends Data
 		}
 	}
 	
-	public static final class Rank {
-		public static final int DEFAULT = 0;
-		public static final int ADMIN = 1;
+	public boolean isRemoving() {
+		return this.isRemoving;
+	}
+	public void initiateRemoval() {
+		if(this.isRemoving) return;
+		this.isRemoving = true;
+		try
+		{
+			this.save();
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		UserRemovalInitiated notification = new UserRemovalInitiated(this);
+		Notification.add(this.getId(), notification);
 	}
 	
-	
+	public void finalizeRemoval() {
+		if(!this.isRemoving) return;
+		this.isRemoving = false;
+		try
+		{
+			this.delete();
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		
+	}
 }
