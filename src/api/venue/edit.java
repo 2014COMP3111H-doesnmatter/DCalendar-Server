@@ -54,6 +54,7 @@ public class edit extends ApiHandler
 		}
 		venue.save();
 		rtn.put("rtnCode", this.getRtnCode(200));
+		rtn.put("venue", venue.toJson());
 		return rtn;
 	}
 	
