@@ -89,8 +89,8 @@ public class Appointment extends Data
 	 * @throws SQLException
 	 */
 	public static boolean isLegal(long uid, long startTime, long endTime,
-			int frequency, long lastDay, long venueId, long exceptApptId, long[] aWaitingId,
-			IsLegalExplain explain) throws SQLException {
+			int frequency, long lastDay, long venueId, long exceptApptId,
+			long[] aWaitingId, IsLegalExplain explain) throws SQLException {
 		// endTime should be greater than startTime
 		if (endTime <= startTime)
 		{
@@ -134,29 +134,36 @@ public class Appointment extends Data
 						"cannot schedule an appointment that cover multiple days";
 			return false;
 		}
-		
+
 		// check venue capacity
 		Venue venue = Venue.findById(venueId);
-		if(venue == null) {
+		if (venue == null)
+		{
 			if (explain != null)
-				explain.explain =
-						"venue does not exist";
+				explain.explain = "venue does not exist";
 			return false;
 		}
-		if(venue.capacity <= aWaitingId.length) {
+		if (venue.capacity <= aWaitingId.length)
+		{
 			if (explain != null)
-				explain.explain =
-						"venue capacity exceeded";
+				explain.explain = "venue capacity exceeded";
 			return false;
 		}
 
 		// check conflict
-		if(Appointment.isConflictWithVenue(startTime, endTime, frequency, lastDay, venueId, exceptApptId, explain)) return false;
-		if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, uid, exceptApptId, explain)) return false;
-		for(long waitingId:aWaitingId) {
-			if(Appointment.isConflictWithUser(startTime, endTime, frequency, lastDay, waitingId, 0, explain)) return false;
+		if (Appointment.isConflictWithVenue(startTime, endTime, frequency,
+				lastDay, venueId, exceptApptId, explain))
+			return false;
+		if (Appointment.isConflictWithUser(startTime, endTime, frequency,
+				lastDay, uid, exceptApptId, explain))
+			return false;
+		for (long waitingId : aWaitingId)
+		{
+			if (Appointment.isConflictWithUser(startTime, endTime, frequency,
+					lastDay, waitingId, 0, explain))
+				return false;
 		}
-		
+
 		return true;
 
 	}
@@ -191,9 +198,11 @@ public class Appointment extends Data
 		rtn.frequency = frequency;
 		rtn.lastDay = lastDay;
 		rtn.freqHelper = freqHelper;
-		if(aWaitingId != null && aWaitingId.length>0) {
+		if (aWaitingId != null && aWaitingId.length > 0)
+		{
 			rtn.isJoint = true;
-			for(long waitingId:aWaitingId) {
+			for (long waitingId : aWaitingId)
+			{
 				rtn.aWaitingId.add(waitingId);
 			}
 		}
@@ -270,18 +279,28 @@ public class Appointment extends Data
 		aAppt.addAll(Appointment.findMonthlyByDaySpan(uid, month, endOfMonth));
 		return aAppt;
 	}
-	public static List<Appointment> findByVenue(long venueId) throws SQLException {
+
+	public static List<Appointment> findByVenue(long venueId)
+			throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
-		ResultSet resultSet = Data._find(Appointment.class.getSimpleName(), "venueId", String.valueOf(venueId));
-		while(resultSet.next()) {
+		ResultSet resultSet =
+				Data._find(Appointment.class.getSimpleName(), "venueId", String
+						.valueOf(venueId));
+		while (resultSet.next())
+		{
 			aAppt.add(Appointment.createOneFromResultSet(resultSet));
 		}
 		return aAppt;
 	}
+
 	private static String makeSqlSelectorForUser(long uid) {
-		return "select * from Appointment where ( initiatorId = " + String.valueOf(uid) + " or exists(select 1 from Appointment_aAcceptedId where `key` = Appointment.id and value = " + String.valueOf(uid) + ")) ";
+		return "select `Appointment`.* from `Appointment_aAcceptedId` "
+				+ "right join `Appointment` "
+				+ "on `Appointment_aAcceptedId`.`key`=`Appointment`.`id` "
+				+ "where `value`= " + uid + " "
+				+ "union distinct select * from `Appointment` where `initiatorId`= " + uid + " ";
 	}
-	
+
 	private static List<Appointment> findOnceByDaySpan(long uid, long startDay,
 			long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
@@ -290,7 +309,9 @@ public class Appointment extends Data
 		// and startTime >= $startDay and endTime <=
 		// $(endDay+DateUtil.DAY_LENGTH)
 		PreparedStatement statement =
-				connect.prepareStatement("select * from (" + Appointment.makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
+				connect.prepareStatement("select * from ("
+						+ Appointment.makeSqlSelectorForUser(uid)
+						+ ") as Temp where frequency = ? "
 						+ "and startTime >= ? and endTime <= ?");
 		statement.setInt(1, Frequency.ONCE);
 		statement.setLong(2, startDay);
@@ -307,11 +328,13 @@ public class Appointment extends Data
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
 
-		// select * from Appointment where frequency = $DAILY 
+		// select * from Appointment where frequency = $DAILY
 		// and startTime <= $(endDay+DateUtil.DAY_LENGTH)
 		// and lastDay >= $startDay
 		PreparedStatement statement =
-				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
+				connect.prepareStatement("select * from ("
+						+ makeSqlSelectorForUser(uid)
+						+ ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and lastDay >= ? ");
 		statement.setInt(1, Frequency.DAILY);
 		statement.setLong(2, endDay + DateUtil.DAY_LENGTH);
@@ -327,14 +350,15 @@ public class Appointment extends Data
 	private static List<Appointment> findWeeklyByDay(long uid, long day)
 			throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
-		// select * from Appointment where frequency = $WEEKLY 
+		// select * from Appointment where frequency = $WEEKLY
 		// and startTime <= $(day + DateUtil.DAY_LENGTH)
 		// and lastDay >= $day
 		// and freqHelper = $freqHelper
 		PreparedStatement statement =
-				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
-						+ "and startTime <= ? "
-						+ "and lastDay >= ? "
+				connect.prepareStatement("select * from ("
+						+ makeSqlSelectorForUser(uid)
+						+ ") as Temp where frequency = ? "
+						+ "and startTime <= ? " + "and lastDay >= ? "
 						+ "and freqHelper = ? ");
 		statement.setInt(1, Frequency.WEEKLY);
 		statement.setLong(2, day + DateUtil.DAY_LENGTH);
@@ -362,11 +386,13 @@ public class Appointment extends Data
 	private static List<Appointment> findWeeklyByDaySpan(long uid,
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
-		// select * from Appointment where frequency = $WEEKLY 
+		// select * from Appointment where frequency = $WEEKLY
 		// and startTime <= $(endDay+DateUtil.DAY_LENGTH)
 		// and lastDay >= $startDay
 		PreparedStatement statement =
-				connect.prepareStatement("select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
+				connect.prepareStatement("select * from ("
+						+ makeSqlSelectorForUser(uid)
+						+ ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and lastDay >= ? ");
 		statement.setInt(1, Frequency.WEEKLY);
 		statement.setLong(2, endDay + DateUtil.DAY_LENGTH);
@@ -384,11 +410,12 @@ public class Appointment extends Data
 			long startDay, long endDay) throws SQLException {
 		List<Appointment> aAppt = new ArrayList<Appointment>();
 		PreparedStatement statement = null;
-		// select * from Appointment where frequency = $MONTHLY 
+		// select * from Appointment where frequency = $MONTHLY
 		// and startTime <= $(endDay + DateUtil.DAY_LENGTH)
 		// and $startDay <= lastDay
 		String str =
-				"select * from (" + makeSqlSelectorForUser(uid) + ") as Temp where frequency = ? "
+				"select * from (" + makeSqlSelectorForUser(uid)
+						+ ") as Temp where frequency = ? "
 						+ "and startTime <= ? " + "and ? <= lastDay ";
 
 		Date startD = new Date(startDay);
@@ -471,38 +498,43 @@ public class Appointment extends Data
 		rtn.frequency = resultSet.getInt("frequency");
 		rtn.lastDay = resultSet.getLong("lastDay");
 		rtn.freqHelper = resultSet.getInt("freqHelper");
-		rtn.isJoint = resultSet.getInt("isJoint")>0;
-		if(rtn.isJoint) {
+		rtn.isJoint = resultSet.getInt("isJoint") > 0;
+		if (rtn.isJoint)
+		{
 			// aAcceptedId
 			rtn.findArray("aAcceptedId", rtn.aAcceptedId);
-		
+
 			// aRejectedId
 			rtn.findArray("aRejectedId", rtn.aRejectedId);
-			
+
 			// aWaitingId
 			rtn.findArray("aWaitingId", rtn.aWaitingId);
 		}
-		
+
 		return rtn;
 	}
-	
-	public static List<Appointment> createFromResultSet(ResultSet result) throws SQLException {
+
+	public static List<Appointment> createFromResultSet(ResultSet result)
+			throws SQLException {
 		List<Appointment> rtn = new ArrayList<Appointment>();
-		while(result.next()) {
+		while (result.next())
+		{
 			rtn.add(createOneFromResultSet(result));
 		}
 		return rtn;
 	}
-	
+
 	public static String getAvailableTimeSlot(long[] aUid) {
-		TimeSlotHelper helper = new TimeSlotHelper(
-				DateUtil.getStartOfDay(TimeMachine.getNow().getTime()), 5);
-		for(long uid:aUid) {
+		TimeSlotHelper helper =
+				new TimeSlotHelper(DateUtil.getStartOfDay(TimeMachine.getNow()
+						.getTime()), 5);
+		for (long uid : aUid)
+		{
 			helper.removeByUser(uid);
 		}
 		return helper.toSentence();
 	}
-	
+
 	public void save() throws SQLException {
 		Map<String, String> values = new HashMap<String, String>();
 		values.put("initiatorId", String.valueOf(initiatorId));
@@ -516,9 +548,10 @@ public class Appointment extends Data
 		this.freqHelper =
 				Appointment.computeFreqHelper(this.frequency, this.startTime);
 		values.put("freqHelper", String.valueOf(this.freqHelper));
-		values.put("isJoint", this.isJoint?"1":"0");
+		values.put("isJoint", this.isJoint ? "1" : "0");
 		super.save(values);
-		if(this.isJoint) {
+		if (this.isJoint)
+		{
 			this.saveArray("aAcceptedId", this.aAcceptedId);
 			this.saveArray("aRejectedId", this.aRejectedId);
 			this.saveArray("aWaitingId", this.aWaitingId);
@@ -545,17 +578,18 @@ public class Appointment extends Data
 		if (uid >= 0)
 			apptJo.put("reminderAhead", this.getReminderAhead(uid));
 		apptJo.put("isJoint", this.isJoint);
-		
-		if(this.isJoint) {
-			apptJo.put("aWaiting", User.listById(
-					WrapperUtil.toArray(this.aWaitingId)));
-			apptJo.put("aAccepted", User.listById(
-					WrapperUtil.toArray(this.aAcceptedId)));
-			apptJo.put("aRejected", User.listById(
-					WrapperUtil.toArray(this.aRejectedId)));
-			
+
+		if (this.isJoint)
+		{
+			apptJo.put("aWaiting", User.listById(WrapperUtil
+					.toArray(this.aWaitingId)));
+			apptJo.put("aAccepted", User.listById(WrapperUtil
+					.toArray(this.aAcceptedId)));
+			apptJo.put("aRejected", User.listById(WrapperUtil
+					.toArray(this.aRejectedId)));
+
 		}
-		
+
 		return apptJo;
 	}
 
@@ -580,66 +614,80 @@ public class Appointment extends Data
 
 	public void delete() throws SQLException {
 		Reminder.deleteByAppt(this.getId());
-		if(this.isJoint) {
+		if (this.isJoint)
+		{
 			this.deleteArray("aWaitingId");
 			this.deleteArray("aRejectedId");
 			this.deleteArray("aAcceptedId");
 		}
-		
+
 		super.delete();
 	}
-	
+
 	public void addAcceptedUser(long uid) {
-		if(!this.aWaitingId.contains(uid)) return;
+		if (!this.aWaitingId.contains(uid))
+			return;
 		this.aWaitingId.remove(uid);
 		this.aAcceptedId.add(uid);
-		if(this.isFinalized()) this.sendFinalizedNotification();
+		if (this.isFinalized())
+			this.sendFinalizedNotification();
 	}
-	
+
 	public boolean isFinalized() {
-		return this.aWaitingId.size()<=0  && this.aRejectedId.size()<=0;
+		return this.aWaitingId.size() <= 0 && this.aRejectedId.size() <= 0;
 	}
-	
+
 	public void addRejectedUser(long uid) {
-		if(!this.aWaitingId.contains(uid)) return;
+		if (!this.aWaitingId.contains(uid))
+			return;
 		this.aWaitingId.remove(uid);
 		this.aRejectedId.add(uid);
 	}
+
 	public boolean isJoint() {
 		return this.isJoint;
 	}
+
 	public void setJoint(boolean isJoint) {
-		if(this.isJoint == isJoint) return;
-		if(isJoint) {
+		if (this.isJoint == isJoint)
+			return;
+		if (isJoint)
+		{
 			this.isJoint = true;
-		}
-		else {
-			try{
+		} else
+		{
+			try
+			{
 				this.isJoint = false;
 				this.deleteArray("aWaitingId");
 				this.deleteArray("aAcceptedId");
 				this.deleteArray("aRejectedId");
-			}
-			catch(SQLException e) {
+			} catch (SQLException e)
+			{
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
+
 	public void sendInitiatedNotification() {
-		for(long uid:this.aWaitingId) {
-			JointAppointmentInitiated notification = new JointAppointmentInitiated(this);
+		for (long uid : this.aWaitingId)
+		{
+			JointAppointmentInitiated notification =
+					new JointAppointmentInitiated(this);
 			Notification.add(uid, notification);
 		}
 	}
+
 	private void sendFinalizedNotification() {
-		JointAppointmentFinalized notification = new JointAppointmentFinalized(this);
+		JointAppointmentFinalized notification =
+				new JointAppointmentFinalized(this);
 		Notification.add(this.initiatorId, notification);
 	}
 
 	private boolean isConflictWith(long startTime, long endTime, int frequency,
 			long lastDay) {
-	
+
 		// day span
 		long startDay1 = DateUtil.getStartOfDay(this.startTime);
 		long startDay2 = DateUtil.getStartOfDay(startTime);
@@ -647,7 +695,7 @@ public class Appointment extends Data
 		long endDay2 = lastDay;
 		if (endDay2 < startDay1 || endDay1 < startDay2)
 			return false;
-	
+
 		// frequency
 		int freq1 = this.frequency;
 		int freq2 = frequency;
@@ -670,31 +718,33 @@ public class Appointment extends Data
 			if (freqHelper1 != freqHelper2)
 				return false;
 		}
-	
+
 		// time
 		long startTime1 = DateUtil.transposeToDay(this.startTime, startDay2);
 		long endTime1 = DateUtil.transposeToDay(this.endTime, startDay2);
 		long startTime2 = startTime;
 		long endTime2 = endTime;
-	
+
 		return startTime1 < endTime2 && startTime2 < endTime1;
 	}
-	
-	
-	
+
 	public boolean isConflictWithUser(long uid) {
-		return Appointment.isConflictWithUser(this.startTime, this.endTime, this.frequency,
-				this.lastDay, uid, 0L, null);
+		return Appointment.isConflictWithUser(this.startTime, this.endTime,
+				this.frequency, this.lastDay, uid, 0L, null);
 	}
-	private static boolean isConflictWithVenue(long startTime, long endTime, int frequency,
-			long lastDay, long venueId, long exceptApptId, IsLegalExplain explain) {
-		try {
+
+	private static boolean isConflictWithVenue(long startTime, long endTime,
+			int frequency, long lastDay, long venueId, long exceptApptId,
+			IsLegalExplain explain) {
+		try
+		{
 			List<Appointment> aAppt = Appointment.findByVenue(venueId);
 			for (Appointment iAppt : aAppt)
 			{
 				if (iAppt.id == exceptApptId)
 					continue;
-				if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+				if (iAppt
+						.isConflictWith(startTime, endTime, frequency, lastDay))
 				{
 					if (explain != null)
 					{
@@ -706,34 +756,38 @@ public class Appointment extends Data
 				}
 			}
 			return false;
-		}
-		catch (Exception e) {
+		} catch (Exception e)
+		{
 			e.printStackTrace();
 			return false;
 		}
 	}
-	private static boolean isConflictWithUser(long startTime, long endTime, int frequency,
-			long lastDay, long uid, long exceptApptId, IsLegalExplain explain) {
-		
-		try{
+
+	private static boolean isConflictWithUser(long startTime, long endTime,
+			int frequency, long lastDay, long uid, long exceptApptId,
+			IsLegalExplain explain) {
+
+		try
+		{
 			long startOfDay = DateUtil.getStartOfDay(startTime);
 			List<Appointment> aAppt;
 			if (frequency == Frequency.DAILY)
 			{
 				long month = DateUtil.getStartOfMonth(startTime);
 				aAppt = Appointment.findByMonth(uid, month);
-				aAppt.addAll(Appointment
-						.findByMonth(uid, DateUtil.nextMonth(month)));
+				aAppt.addAll(Appointment.findByMonth(uid, DateUtil
+						.nextMonth(month)));
 			} else
 			{
 				aAppt = Appointment.findByDay(uid, startOfDay);
 			}
-		
+
 			for (Appointment iAppt : aAppt)
 			{
 				if (iAppt.id == exceptApptId)
 					continue;
-				if (iAppt.isConflictWith(startTime, endTime, frequency, lastDay))
+				if (iAppt
+						.isConflictWith(startTime, endTime, frequency, lastDay))
 				{
 					if (explain != null)
 					{
@@ -745,96 +799,112 @@ public class Appointment extends Data
 				}
 			}
 			return false;
-		}
-		catch(Exception e) {
+		} catch (Exception e)
+		{
 			e.printStackTrace();
 			return true;
 		}
-		
+
 	}
-	
- 
+
 }
 
 class TimeSlotHelper
 {
-	private static final int nDaySlot = 24*4;
+	private static final int nDaySlot = 24 * 4;
 	private boolean[] aIsAvailable = null;
 	private int nSlot = 0;
 	private long startOfDay;
 	private int nDay;
-	private static DateFormat dateFormat = new SimpleDateFormat("MMM.dd hh:mm aaa");
-	
-	public TimeSlotHelper(long startOfDay, int nDay) {
+	private static DateFormat dateFormat = new SimpleDateFormat(
+			"MMM.dd HH:mm");
+
+	public TimeSlotHelper(long startOfDay, int nDay)
+	{
 		this.startOfDay = startOfDay;
 		this.nDay = nDay;
-		this.nSlot = nDaySlot*nDay;
+		this.nSlot = nDaySlot * nDay;
 		this.aIsAvailable = new boolean[this.nSlot];
 		Arrays.fill(this.aIsAvailable, true);
 	}
+
 	private int getIndex(long time) {
 		return (int) ((time - this.startOfDay) / Appointment.TIME_UNIT);
 	}
+
 	private long getSlot(int i) {
-		return this.startOfDay + i*Appointment.TIME_UNIT;
+		return this.startOfDay + i * Appointment.TIME_UNIT;
 	}
+
 	public void removeBySpan(long startTime, long endTime) {
 		int startIndex = this.getIndex(startTime);
 		int endIndex = this.getIndex(endTime);
-		for(int i=startIndex; i<=endIndex; i++) {
-			if(i<0 || i>=nSlot) continue;
+		for (int i = startIndex; i < endIndex; i++)
+		{
+			if (i < 0 || i >= nSlot)
+				continue;
 			this.aIsAvailable[i] = false;
 		}
 	}
-	public void removeByAppointment(Appointment appt) {
-		this.removeBySpan(DateUtil.transposeToDay(appt.startTime,this.startOfDay)
-				, DateUtil.transposeToDay(appt.endTime, this.startOfDay));
+
+	public void removeByAppointment(Appointment appt, int dayOffset) {
+		this.removeBySpan(DateUtil.transposeToDay(appt.startTime,
+				this.startOfDay + dayOffset*DateUtil.DAY_LENGTH), DateUtil.transposeToDay(appt.endTime,
+				this.startOfDay + dayOffset*DateUtil.DAY_LENGTH));
 	}
+
 	public void removeByUser(long uid) {
 		try
 		{
-			
-			List<Appointment> aAppt = new ArrayList<Appointment>();
-			for(int i=0; i<this.nDay;i++) {
-				aAppt.addAll(Appointment.findByDay(uid, this.startOfDay + i*DateUtil.DAY_LENGTH));
+
+			for (int i = 0; i < this.nDay; i++)
+			{
+				List<Appointment> aAppt = Appointment.findByDay(uid, this.startOfDay + i
+						* DateUtil.DAY_LENGTH);
+				for(Appointment appt : aAppt) {
+					this.removeByAppointment(appt, i);
+				}
+
 			}
-			for(Appointment appt:aAppt) {
-				this.removeByAppointment(appt);
-			}
-			
-		} catch (SQLException e)
+
+		} catch (Exception e)
 		{
 			e.printStackTrace();
 		}
 	}
+
 	public String toSentence() {
 		List<Long> aStartTime = new ArrayList<Long>();
 		List<Long> aEndTime = new ArrayList<Long>();
-		
+
 		boolean currAvailability = false;
-		for(int i=0; i<nSlot; i++) {
-			if(this.aIsAvailable[i] == currAvailability) continue;
+		for (int i = 0; i < nSlot; i++)
+		{
+			if (this.aIsAvailable[i] == currAvailability)
+				continue;
 			currAvailability = this.aIsAvailable[i];
-			if(currAvailability) {
+			if (currAvailability)
+			{
 				aStartTime.add(this.getSlot(i));
-			}
-			else {
+			} else
+			{
 				aEndTime.add(this.getSlot(i));
 			}
 		}
-		if(currAvailability) {
+		if (currAvailability)
+		{
 			aEndTime.add(this.getSlot(nSlot));
 		}
-		
+
 		StringBuilder sb = new StringBuilder("");
-		for(int i=0;i<aStartTime.size();i++) {
+		for (int i = 0; i < aStartTime.size(); i++)
+		{
 			Date startD = new Date(aStartTime.get(i));
 			Date endD = new Date(aEndTime.get(i));
-			sb.append(dateFormat.format(startD))
-			.append(" to ").append(dateFormat.format(endD))
-			.append("\n");
+			sb.append("[").append(dateFormat.format(startD)).append(" - ").append(
+					dateFormat.format(endD)).append("] \n");
 		}
-		
+
 		return sb.toString();
 	}
 }
