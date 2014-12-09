@@ -1,5 +1,7 @@
 package doesnserver;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -32,11 +34,27 @@ public class DoesnServer extends NanoHTTPD
 			return CommonResponses.showFavicon();
 		}
 		Session session = Session.fromNanoCookie(request.getCookies());
-		Response res = new Response(this.serveAsJson(request, session).toString());
+		String responseString = this.serveAsJson(request, session).toString();
+		Response res = new Response(responseString);
+		
+		// write log
+		this.logRequest(uri, responseString);
+		
 		res.addHeader("Set-Cookie", session.getCookieForResponse());
 		res.addHeader("Access-Control-Allow-Origin", "*");
 		return res;
 
+	}
+	
+	private void logRequest(String uri, String res) {
+		try {
+		    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("log.txt", true)));
+		    out.println(uri);
+		    out.println(res);
+		    out.close();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
 	}
 
 	private JSONObject serveAsJson(IHTTPSession request, Session session) {
