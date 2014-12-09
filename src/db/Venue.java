@@ -123,13 +123,13 @@ public class Venue extends Data
 		
 	}
 	private void finalizeRemovalWithoutChecking() {
-		User admin = User.findOneAdmin();
-		if(admin != null) {
-			VenueRemovalFinalized notification = new VenueRemovalFinalized(this);
-			Notification.add(admin.getId(), notification);
-		}
 		try
 		{
+			List<User> aUser = User.list();
+			for(User user:aUser) {
+				VenueRemovalFinalized notification = new VenueRemovalFinalized(this);
+				Notification.add(user.getId(), notification);
+			}
 			this.delete();
 			
 		} catch (SQLException e)
