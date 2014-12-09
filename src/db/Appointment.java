@@ -146,7 +146,7 @@ public class Appointment extends Data
 		if (venue.capacity <= aWaitingId.length)
 		{
 			if (explain != null)
-				explain.explain = "venue capacity exceeded";
+				explain.explain = "venue capacity is " + venue.capacity + " but there are " + (aWaitingId.length+1) + " participants";
 			return false;
 		}
 

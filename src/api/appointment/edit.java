@@ -128,34 +128,7 @@ public class edit extends ApiHandler
 		// normalize last day
 		lastDay = DateUtil.earliestLastDay(endTime, frequency, lastDay);
 
-		if (startTime != appt.startTime || endTime != appt.endTime
-				|| frequency != appt.frequency || lastDay != appt.lastDay || venueId != appt.venueId)
-		{
-
-			Appointment.IsLegalExplain explain =
-					new Appointment.IsLegalExplain();
-			// get candidiates from accepted, rejected and waiting
-			Set<Long> candidates = new HashSet<Long>();
-			candidates.addAll(appt.aAcceptedId);
-			candidates.addAll(appt.aRejectedId);
-			candidates.addAll(appt.aWaitingId);
-
-			if (!Appointment.isLegal(session.getActiveUserId(), startTime,
-					endTime, frequency, lastDay, venueId, appt.getId(), WrapperUtil
-							.toArray(candidates), explain))
-			{
-				rtn.put("rtnCode", this.getRtnCode(408));
-				rtn.put("explain", explain);
-				return rtn;
-			}
-
-			appt.startTime = startTime;
-			appt.endTime = endTime;
-			appt.frequency = frequency;
-			appt.lastDay = lastDay;
-			appt.venueId = venueId;
-
-		}
+		
 
 		// reminder
 		if (params.containsKey("reminderAhead"))
@@ -199,6 +172,30 @@ public class edit extends ApiHandler
 		else {
 			appt.setJoint(false);
 		}
+		
+		// check legal
+		Appointment.IsLegalExplain explain =
+				new Appointment.IsLegalExplain();
+		// get candidiates from accepted, rejected and waiting
+		Set<Long> candidates = new HashSet<Long>();
+		candidates.addAll(appt.aAcceptedId);
+		candidates.addAll(appt.aRejectedId);
+		candidates.addAll(appt.aWaitingId);
+
+		if (!Appointment.isLegal(session.getActiveUserId(), startTime,
+				endTime, frequency, lastDay, venueId, appt.getId(), WrapperUtil
+						.toArray(candidates), explain))
+		{
+			rtn.put("rtnCode", this.getRtnCode(408));
+			rtn.put("explain", explain);
+			return rtn;
+		}
+
+		appt.startTime = startTime;
+		appt.endTime = endTime;
+		appt.frequency = frequency;
+		appt.lastDay = lastDay;
+		appt.venueId = venueId;
 		
 
 		rtn.put("rtnCode", this.getRtnCode(200));
